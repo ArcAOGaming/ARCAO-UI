@@ -11,6 +11,7 @@ import { ScoreProvider } from './shared-components/Score/ScoreContext';
 import { games } from './games/games';
 import styled, { createGlobalStyle } from 'styled-components';
 import './App.css';
+import { RANDAO_LINKS, SATOSHIS_PALACE_LINKS } from './social-links';
 
 // Dynamic imports for game components
 const GameComponents = {
@@ -141,7 +142,7 @@ const AppContent: React.FC = () => {
     }
   };
 
-  const GameComponent = selectedGame 
+  const GameComponent = selectedGame
     ? (GameComponents[selectedGame as GameComponentType] ?? null)
     : null;
 
@@ -197,26 +198,26 @@ const AppContent: React.FC = () => {
               <AboutSection id="about">
                 <h2>About Us</h2>
                 <p>
-                  Welcome to ArcAO, where we're revolutionizing the gaming experience through blockchain technology. 
-                  Our platform offers provably fair gaming experiences, ensuring complete transparency and trust in every game. 
+                  Welcome to ArcAO, where we're revolutionizing the gaming experience through blockchain technology.
+                  Our platform offers provably fair gaming experiences, ensuring complete transparency and trust in every game.
                   Built on cutting-edge technology, we provide a secure and entertaining environment for players worldwide.
                 </p>
-                
+
                 <h3>Our Products</h3>
                 <ProductGrid>
                   <ProductCard
                     title="Satoshi's Palace"
                     description="Experience the future of gaming with Satoshi's Palace, where blockchain meets entertainment. Dive into a world of provably fair gaming and exclusive rewards."
-                    onClick={() => window.open('https://satoshis.games', '_blank')}
-                    twitterUrl="https://x.com/SatoshisPalaceX"
-                    websiteUrl="https://satoshispalace.casino/"
+                    onClick={() => window.open(SATOSHIS_PALACE_LINKS.WEBSITE, '_blank')}
+                    twitterUrl={SATOSHIS_PALACE_LINKS.X}
+                    websiteUrl={SATOSHIS_PALACE_LINKS.WEBSITE}
                   />
                   <ProductCard
-                    title="Rand AO"
-                    description="Discover Rand AO, our innovative random number generation protocol built on Arweave. Providing verifiable randomness for decentralized applications."
-                    onClick={() => window.open('https://rand.arweave.dev', '_blank')}
-                    twitterUrl="https://x.com/RandAOToken"
-                    websiteUrl="https://randao.permagate.io/"
+                    title="RandAO"
+                    description="Discover RandAO, our innovative random number generation protocol built on Arweave. Providing verifiable randomness for decentralized applications."
+                    onClick={() => window.open(RANDAO_LINKS.WEBSITE, '_blank')}
+                    twitterUrl={RANDAO_LINKS.X}
+                    websiteUrl={RANDAO_LINKS.WEBSITE}
                   />
                 </ProductGrid>
               </AboutSection>

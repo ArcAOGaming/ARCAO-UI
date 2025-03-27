@@ -1,3 +1,5 @@
+import { RUNREALM_LINKS } from "../social-links";
+
 export interface Game {
   id: string;
   title: string;
@@ -48,7 +50,7 @@ export const games: Game[] = [
     status: 'live',
     creator: "Rune Realm",
     creatorLogo: '/Creator_Logos/rune_realm.png',
-    externalLink: 'https://runerealm.satoshispalace.casino'
+    externalLink: RUNREALM_LINKS.GAME
   }
   // {
   //   id: 'TOWER_GAME',
@@ -57,7 +59,7 @@ export const games: Game[] = [
   //   status: 'live',
   //   creator: "Satoshi's Palace",
   //   creatorLogo: '/Creator_Logos/sp.ico',
-  //   externalLink: 'https://tower.satoshispalace.casino'
+  //   externalLink: 'https://tower.ar.ionode.online/'
   // },
   // {
   //   id: 'Ghost_Hunt',
