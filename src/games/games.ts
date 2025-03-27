@@ -1,4 +1,4 @@
-import { RUNREALM_LINKS } from "../social-links";
+import { RUNREALM_LINKS } from "../links";
 
 export interface Game {
   id: string;

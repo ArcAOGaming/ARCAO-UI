@@ -1,9 +1,10 @@
-export const ARCAO_SOCIAL_LINKS = {
+export const ARCAO_LINKS = {
     X: "https://x.com/Arc_AO",
     GITHUB: "https://github.com/ArcAOGaming",
     DISCORD_INVITE: "https://discord.com/invite/arc-ao",
     TELEGRAM_INVITE: "https://t.me/ArcAOGames",
-    YOUTUBE: "https://www.youtube.com/channel/UCZ2BLp3TXFAVs6q5S_34H0A"
+    YOUTUBE: "https://www.youtube.com/channel/UCZ2BLp3TXFAVs6q5S_34H0A",
+    DOCS: "https://docs-arcao_game.ar.ionode.online"
 }
 
 export const SATOSHIS_PALACE_LINKS = {

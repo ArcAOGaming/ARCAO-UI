@@ -1,23 +1,23 @@
 import React from 'react';
 import './Footer.css';
-import { ARCAO_SOCIAL_LINKS } from '../social-links';
+import { ARCAO_LINKS } from '../links';
 
 const Footer: React.FC = () => {
   const socials = [
     {
       name: 'Twitter',
       icon: require('../assets/x.png'),
-      url: ARCAO_SOCIAL_LINKS.X
+      url: ARCAO_LINKS.X
     },
     {
       name: 'Discord',
       icon: require('../assets/discord.png'),
-      url: ARCAO_SOCIAL_LINKS.DISCORD_INVITE
+      url: ARCAO_LINKS.DISCORD_INVITE
     },
     {
       name: 'Telegram',
       icon: require('../assets/telegram.png'),
-      url: ARCAO_SOCIAL_LINKS.TELEGRAM_INVITE
+      url: ARCAO_LINKS.TELEGRAM_INVITE
     }
   ];
 

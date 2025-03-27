@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import './Header.css';
 import styled from 'styled-components';
 import WalletConnection from '../shared-components/Wallet/WalletConnection';
+import { ARCAO_LINKS } from '../links';
 
 interface HeaderProps {
   toggleSidebar: () => void;
@@ -20,7 +21,7 @@ const Header: React.FC<HeaderProps> = ({ toggleSidebar }) => {
   useEffect(() => {
     const handleScroll = () => {
       const scrollPosition = window.scrollY + window.innerHeight / 2;
-      const sections = ['start', 'games', 'about'].map(id => {
+      const sections = ['start', 'games', 'about', 'join'].map(id => {
         const element = document.getElementById(id);
         if (!element) return { id, top: 0 };
         return {
@@ -96,6 +97,15 @@ const Header: React.FC<HeaderProps> = ({ toggleSidebar }) => {
               onChange={() => scrollToSection('about')}
             />
             <span className="name">About Us</span>
+          </label>
+          <label className="radio">
+            <input
+              type="radio"
+              name="section"
+              checked={activeSection === 'join'}
+              onChange={() => scrollToSection('join')}
+            />
+            <span className="name">Join</span>
           </label>
         </div>
       </div>
