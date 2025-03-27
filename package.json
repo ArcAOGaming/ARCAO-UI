@@ -18,7 +18,8 @@
   "scripts": {
     "start": "react-scripts start",
     "build": "cross-env DISABLE_ESLINT_PLUGIN=true react-scripts build",
-    "deploy": "npm run build && permaweb-deploy --deploy-folder ./build --ant-process $DEPLOY_ANT_PROCESS_ID",
+    "deploy": "permaweb-deploy --deploy-folder ./build --ant-process $DEPLOY_ANT_PROCESS_ID",
+    "deploy-undername": "permaweb-deploy --deploy-folder ./build --ant-process $DEPLOY_ANT_PROCESS_ID --undername $DEPLOY_UNDERNAME",
     "format": "prettier --write .",
     "lint": "eslint . --ext ts,tsx --report-unused-disable-directives --max-warnings 0",
     "test": "react-scripts test",
