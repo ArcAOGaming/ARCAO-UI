@@ -1,11 +1,13 @@
 import React, { useState, useEffect } from 'react';
-import styled from 'styled-components';
 import { PIOracleClient, PIOracleClientBuilder, PITokenClient, PIToken, TickHistoryEntry, DelegationInfo, PIDelegateClient, PIDelegateClientBuilder } from 'ao-process-clients/dist/src/clients/pi';
 import { TokenClient } from 'ao-process-clients/dist/src/clients/ao';
-import { AOToken } from 'ao-process-clients/dist/src/clients/tokens/AOTokenClient';
 import { DryRunResult } from '@permaweb/aoconnect/dist/lib/dryrun';
-import { AO_CONFIG } from '../config/aoConnection';
 import { useWallet } from '../shared-components/Wallet/WalletContext';
+import './Mint.css';
+
+// Import new component files
+import PITokens from './mint/components/PITokens';
+import DelegationManagement from './mint/components/DelegationManagement';
 
 // Define interfaces for component state
 interface StateStructure {
@@ -23,181 +25,13 @@ interface StateStructure {
   updatingDelegation: boolean;
 }
 
-// Form interfaces aren't needed anymore since we're using a simpler state object
+// All styled components have been replaced with CSS classes from Mint.css
 
-const MintContainer = styled.div`
-  padding: 2rem;
-  background: rgba(255, 255, 255, 0.95);
-  border-radius: 10px;
-  max-width: 1200px;
-  margin: 2rem auto;
-`;
+// Helper component for loading spinner
+const LoadingSpinner: React.FC = () => {
+  return <div className="loading-spinner"></div>;
+};
 
-const Title = styled.h1`
-  font-size: 2.5rem;
-  margin-bottom: 2rem;
-  text-align: center;
-  color: #333;
-`;
-
-const SectionTitle = styled.h2`
-  font-size: 1.8rem;
-  margin: 2rem 0 1rem;
-  color: #444;
-  border-bottom: 2px solid #eee;
-  padding-bottom: 0.5rem;
-`;
-
-const DataCard = styled.div`
-  background: white;
-  border-radius: 8px;
-  padding: 1.5rem;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-  margin-bottom: 1.5rem;
-  overflow: auto;
-  max-height: 300px;
-`;
-
-const TokenGrid = styled.div`
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
-  gap: 1rem;
-  margin-top: 1rem;
-`;
-
-const TokenCard = styled.div`
-  background: #f8f9fa;
-  border-radius: 8px;
-  padding: 1rem;
-  border: 1px solid #eee;
-  
-  h3 {
-    margin-top: 0;
-    margin-bottom: 0.5rem;
-    font-size: 1.2rem;
-  }
-  
-  p {
-    margin: 0.3rem 0;
-    font-size: 0.9rem;
-  }
-  
-  button.refresh {
-    padding: 4px 8px;
-    background: #4a90e2;
-    color: white;
-    border: none;
-    border-radius: 4px;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 0.8rem;
-  }
-  
-  button.refresh:hover {
-    background: #3a80d2;
-  }
-  
-  button.refresh:disabled {
-    background: #a0a0a0;
-    cursor: not-allowed;
-  }
-`;
-
-const ErrorMessage = styled.div`
-  color: #d32f2f;
-  background: #ffebee;
-  padding: 0.5rem 1rem;
-  border-radius: 4px;
-  margin: 0.5rem 0;
-`;
-
-const LoadingSpinner = styled.div`
-  display: inline-block;
-  width: 1.5rem;
-  height: 1.5rem;
-  border: 3px solid rgba(0, 0, 0, 0.1);
-  border-radius: 50%;
-  border-top-color: #333;
-  animation: spin 1s ease-in-out infinite;
-  margin-right: 0.5rem;
-  
-  @keyframes spin {
-    to {
-      transform: rotate(360deg);
-    }
-  }
-`;
-
-const StatusLabel = styled.div<{ $isLoading?: boolean; $isError?: boolean }>`
-  display: inline-flex;
-  align-items: center;
-  padding: 0.5rem;
-  margin: 0.5rem 0;
-  background: ${props => props.$isLoading ? '#f8f9fa' : props.$isError ? '#fff0f0' : 'transparent'};
-  color: ${props => props.$isError ? '#d32f2f' : 'inherit'};
-  border-radius: 4px;
-  font-style: italic;
-`;
-
-const FormSection = styled.div`
-  margin: 20px 0;
-  padding: 15px;
-  background: #f9f9f9;
-  border-radius: 8px;
-  border: 1px solid #eee;
-`;
-
-const FormRow = styled.div`
-  display: flex;
-  margin-bottom: 10px;
-  align-items: center;
-  gap: 10px;
-`;
-
-const FormLabel = styled.label`
-  width: 150px;
-  font-weight: bold;
-`;
-
-const FormInput = styled.input`
-  flex: 1;
-  padding: 8px;
-  border: 1px solid #ddd;
-  border-radius: 4px;
-`;
-
-const Button = styled.button`
-  padding: 10px 15px;
-  background: #4a90e2;
-  color: white;
-  border: none;
-  border-radius: 4px;
-  cursor: pointer;
-  margin-right: 10px;
-  
-  &:disabled {
-    background: #cccccc;
-    cursor: not-allowed;
-  }
-  
-  &.danger {
-    background: #e74c3c;
-  }
-  
-  &.secondary {
-    background: #95a5a6;
-  }
-`;
-
-const PreBlock = styled.pre`
-  background: #f5f5f5;
-  padding: 1rem;
-  border-radius: 4px;
-  overflow: auto;
-  font-size: 0.85rem;
-`;
 
 interface TokenClientPair {
   piClient: PITokenClient;
@@ -301,7 +135,7 @@ const Mint: React.FC = () => {
       const builder = new PIOracleClientBuilder();
       const client = builder.withAOConfig({
         MODE: 'legacy',
-        CU_URL: "https://ur-cu.randao.net"
+        CU_URL: "https://cu.ao-testnet.xyz"
       }).build();
       setOracleClient(client);
       return client;
@@ -313,7 +147,7 @@ const Mint: React.FC = () => {
       const builder = new PIDelegateClientBuilder();
       const client = builder.withAOConfig({
         MODE: 'legacy',
-        CU_URL: "https://ur-cu.randao.net"
+        CU_URL: "https://cu.ao-testnet.xyz"
       }).build();
       setDelegateClient(client);
       return client;
@@ -325,6 +159,14 @@ const Mint: React.FC = () => {
     const delegateClientInstance = initDelegateClient();
     fetchAllData(oracleClientInstance, delegateClientInstance);
   }, []);
+  
+  // Add a specific useEffect to refresh delegation data when wallet address changes
+  useEffect(() => {
+    if (walletAddress && delegateClient) {
+      console.log('Wallet address changed, fetching delegation info...');
+      fetchDelegationInfo(delegateClient);
+    }
+  }, [walletAddress, delegateClient]);
   
   // We don't need this useEffect anymore since we're handling token data fetching in fetchAllData
   // This useEffect was causing duplicate API calls for each token
@@ -712,71 +554,13 @@ const Mint: React.FC = () => {
     }));
   };
 
-  // PI Token client functions
-  const fetchTokenInfo = async (client: PITokenClient) => {
-    try {
-      setLoading(prev => ({ ...prev, tokenInfo: true }));
-      const data = await client.getInfo();
-      setTokenInfo(data);
-      setErrors(prev => ({ ...prev, tokenInfo: null }));
-    } catch (error: any) {
-      console.error('Error fetching token info:', error);
-      setErrors(prev => ({ ...prev, tokenInfo: error.message }));
-    } finally {
-      setLoading(prev => ({ ...prev, tokenInfo: false }));
-    }
-  };
-
-  const fetchTickHistory = async (client: PITokenClient) => {
-    try {
-      setLoading(prev => ({ ...prev, tickHistory: true }));
-      const data = await client.getTickHistory();
-      const parsedData = client.parseTickHistory(data);
-      setTickHistoryData(parsedData);
-      setErrors(prev => ({ ...prev, tickHistory: null }));
-    } catch (error: any) {
-      console.error('Error fetching tick history:', error);
-      setErrors(prev => ({ ...prev, tickHistory: error.message }));
-    } finally {
-      setLoading(prev => ({ ...prev, tickHistory: false }));
-    }
-  };
-
-  const fetchBalance = async (client: PITokenClient) => {
-    try {
-      setLoading(prev => ({ ...prev, balance: true }));
-      const data = await client.getBalance();
-      setBalanceData(data);
-      setErrors(prev => ({ ...prev, balance: null }));
-    } catch (error: any) {
-      console.error('Error fetching balance:', error);
-      setErrors(prev => ({ ...prev, balance: error.message }));
-    } finally {
-      setLoading(prev => ({ ...prev, balance: false }));
-    }
-  };
-
-  const fetchClaimableBalance = async (client: PITokenClient) => {
-    try {
-      setLoading(prev => ({ ...prev, claimableBalance: true }));
-      const data = await client.getClaimableBalance();
-      setClaimableBalanceData(data);
-      setErrors(prev => ({ ...prev, claimableBalance: null }));
-    } catch (error: any) {
-      console.error('Error fetching claimable balance:', error);
-      setErrors(prev => ({ ...prev, claimableBalance: error.message }));
-    } finally {
-      setLoading(prev => ({ ...prev, claimableBalance: false }));
-    }
-  };
-
   // Update to accept any string key to maintain backward compatibility
   const renderLoadingState = (key: string) => {
     if (loading[key as keyof typeof loading]) {
       return (
-        <StatusLabel $isLoading={true}>
+        <div className="status-label loading">
           <LoadingSpinner /> Loading...
-        </StatusLabel>
+        </div>
       );
     }
     return null;
@@ -785,9 +569,9 @@ const Mint: React.FC = () => {
   const renderError = (key: string) => {
     if (errors[key]) {
       return (
-        <StatusLabel $isError={true}>
+        <div className="status-label error">
           Error: {errors[key]}
-        </StatusLabel>
+        </div>
       );
     }
     return null;
@@ -930,393 +714,48 @@ const Mint: React.FC = () => {
   };
   
   return (
-    <MintContainer id="mint">
-      <Title>PI Token Integration</Title>
+    <div className="mint-container" id="mint">
+      <h1 className="title">PI Token Integration</h1>
       
-      <div style={{ textAlign: 'center', marginBottom: '20px' }}>
-        <button 
-          onClick={refreshAllTokenData}
-          disabled={Object.values(isRefreshing).some(val => val)}
-          style={{
-            padding: '8px 16px',
-            background: '#4caf50',
-            color: 'white',
-            border: 'none',
-            borderRadius: '4px',
-            cursor: 'pointer',
-            fontSize: '16px',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            margin: '0 auto'
-          }}
-        >
-          {Object.values(isRefreshing).some(val => val) ? (
-            <>
-              <LoadingSpinner /> Refreshing All Token Data...
-            </>
-          ) : 'Refresh All Token Data'}
-        </button>
-      </div>
+      {/* Use the DelegationManagement component */}
+      <DelegationManagement 
+        delegationData={delegationData}
+        delegationForm={delegationForm}
+        loading={{ delegationInfo: loading.delegationInfo, updatingDelegation: loading.updatingDelegation }}
+        handleDelegationChange={handleDelegationChange}
+        updateDelegation={updateDelegation}
+        renderLoadingState={renderLoadingState}
+        renderError={renderError}
+        tokens={piTokensData}
+        processToTokenMap={(() => {
+          // Create a map with all possible token identifiers
+          const map = new Map<string, PIToken>();
+          
+          // Add by process ID
+          piTokensData.forEach(token => {
+            if (token.process) map.set(token.process, token);
+            if (token.id) map.set(token.id, token); 
+            if (token.flp_token_process) map.set(token.flp_token_process, token);
+            if (token.treasury) map.set(token.treasury, token);
+          });
+          
+          return map;
+        })()}
+      />
       
-      <SectionTitle>Delegation Management</SectionTitle>
-      {renderLoadingState('delegationInfo')}
-      {renderError('delegationInfo')}
-      {renderLoadingState('updatingDelegation')}
-      {renderError('updatingDelegation')}
-      <DataCard>
-        <h3>Your Delegation Preferences</h3>
-        {delegationData && (
-          <>
-            <p>Total Factor: {delegationData.totalFactor} ({delegationData.totalFactor === '10000' ? '100%' : `${parseInt(delegationData.totalFactor)/100}%`})</p>
-            <p>Last Updated: {new Date(delegationData.lastUpdate).toLocaleString()}</p>
-            <p>Wallet: {delegationData.wallet}</p>
-            
-            <FormSection>
-              <h4>Set Single Delegation</h4>
-              <FormRow>
-                <FormLabel>Wallet Address To:</FormLabel>
-                <FormInput 
-                  type="text" 
-                  value={delegationForm.walletTo}
-                  onChange={(e) => handleDelegationChange('walletTo', e.target.value)}
-                  placeholder="Enter destination wallet address"
-                />
-              </FormRow>
-              <FormRow>
-                <FormLabel>Factor (0-10000):</FormLabel>
-                <FormInput 
-                  type="number" 
-                  value={delegationForm.factor}
-                  onChange={(e) => handleDelegationChange('factor', e.target.value)}
-                  placeholder="Enter factor value (basis points out of 10000)"
-                />
-              </FormRow>
-              <FormRow>
-                <Button 
-                  onClick={updateDelegation} 
-                  disabled={!delegationForm.formDirty || loading.updatingDelegation || !delegationForm.walletTo}
-                >
-                  {loading.updatingDelegation ? 'Setting Delegation...' : 'Set Delegation'}
-                </Button>
-              </FormRow>
-              <p style={{ marginTop: '10px', fontSize: '0.9em', color: '#777' }}>
-                Note: Factor is measured in basis points (1/100 of a percent). 10000 = 100%, 5000 = 50%, 500 = 5%, etc.
-              </p>
-            </FormSection>
-            
-            <h4>Current Delegations</h4>
-            <div style={{ marginTop: '10px' }}>
-              {delegationData.delegationPrefs && delegationData.delegationPrefs.length > 0 ? (
-                <table style={{ width: '100%', borderCollapse: 'collapse' }}>
-                  <thead>
-                    <tr>
-                      <th style={{ textAlign: 'left', padding: '8px', borderBottom: '1px solid #ddd' }}>Wallet</th>
-                      <th style={{ textAlign: 'right', padding: '8px', borderBottom: '1px solid #ddd' }}>Factor</th>
-                      <th style={{ textAlign: 'right', padding: '8px', borderBottom: '1px solid #ddd' }}>Percentage</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {delegationData.delegationPrefs.map((pref: {walletTo: string; factor: number}, index: number) => {
-                      const percentage = parseFloat(((pref.factor / parseInt(delegationData.totalFactor)) * 100).toFixed(2));
-                      return (
-                        <tr key={index}>
-                          <td style={{ padding: '8px', borderBottom: '1px solid #eee' }}>{pref.walletTo}</td>
-                          <td style={{ textAlign: 'right', padding: '8px', borderBottom: '1px solid #eee' }}>{pref.factor}</td>
-                          <td style={{ textAlign: 'right', padding: '8px', borderBottom: '1px solid #eee' }}>{percentage}%</td>
-                        </tr>
-                      );
-                    })}
-                  </tbody>
-                </table>
-              ) : (
-                <p>No delegation preferences set.</p>
-              )}
-            </div>
-          </>
-        )}
-        {!delegationData && !loading.delegationInfo && (
-          <p>No delegation data available. Connect your wallet to view and manage delegations.</p>
-        )}
-      </DataCard>
-      
-      <SectionTitle>Oracle Information</SectionTitle>
-      {renderLoadingState('info')}
-      {renderError('info')}
-      <DataCard>
-        <h3>Oracle Process Info</h3>
-        <PreBlock>
-          {infoData ? JSON.stringify(infoData, null, 2) : 'No data available'}
-        </PreBlock>
-      </DataCard>
-      
-      <SectionTitle>PI Tokens</SectionTitle>
-      {renderLoadingState('piTokens') || renderLoadingState('tokenClientPairs')}
-      {renderError('piTokens') || renderError('tokenClientPairs')}
-      <DataCard>
-        <h3>Available PI Tokens</h3>
-        {piTokensData.length > 0 ? (
-          <TokenGrid>
-            {tokenClientPairs.map(([piClient, baseClient], index) => {
-              const tokenId = piClient.baseConfig.processId;
-              const processId = baseClient.baseConfig.processId;
-              const token = piTokensData.find(t => 
-                t.id === tokenId || 
-                t.process === processId || 
-                t.flp_token_process === processId
-              );
-              const ticker = token?.ticker || token?.flp_token_ticker || 'Unknown';
-              const tokenData = tokenDataMap.get(tokenId);
-              const isTokenRefreshing = isRefreshing[tokenId] || false;
-              
-              return (
-                <TokenCard key={index} style={{ maxWidth: '350px' }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                      {token?.flp_token_logo ? (
-                        <div style={{ width: '36px', height: '36px', borderRadius: '6px', overflow: 'hidden', flexShrink: 0, border: '1px solid #eee' }}>
-                          <img 
-                            src={`https://arweave.net/${token.flp_token_logo}`}
-                            alt={ticker} 
-                            style={{ width: '100%', height: '100%', objectFit: 'contain' }} 
-                            onError={(e) => {
-                              // Handle image loading errors by hiding the broken image
-                              (e.target as HTMLImageElement).style.display = 'none';
-                              // Show fallback
-                              const parent = (e.target as HTMLImageElement).parentElement;
-                              if (parent) {
-                                parent.innerHTML = `<div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-weight:bold;color:#777;">${ticker.slice(0, 2)}</div>`;
-                              }
-                            }}
-                          />
-                        </div>
-                      ) : (
-                        <div style={{ 
-                          width: '36px', 
-                          height: '36px', 
-                          borderRadius: '6px', 
-                          backgroundColor: '#f0f0f0', 
-                          border: '1px solid #eee',
-                          display: 'flex', 
-                          alignItems: 'center', 
-                          justifyContent: 'center',
-                          fontSize: '14px',
-                          fontWeight: 'bold',
-                          color: '#777',
-                          flexShrink: 0
-                        }}>
-                          {ticker.slice(0, 2)}
-                        </div>
-                      )}
-                      <div>
-                        <h3 style={{ margin: '0 0 2px 0' }}>{ticker} <span style={{ fontSize: '0.7em', opacity: 0.7 }}>({tokenId.slice(0, 6)}...)</span></h3>
-                        {tokenData?.name && tokenData.name !== ticker && (
-                          <div style={{ fontSize: '0.85em', color: '#666' }}>{tokenData.name}</div>
-                        )}
-                      </div>
-                    </div>
-                    <div>
-                      <button 
-                        className="refresh" 
-                        onClick={() => fetchTokenData(piClient, baseClient, true)}
-                        disabled={isTokenRefreshing}
-                        title="Fetch latest balance and yield data for this token"
-                      >
-                        {isTokenRefreshing ? <LoadingSpinner /> : '⟳'} Load Data
-                      </button>
-                    </div>
-                  </div>
-                  
-                  <div style={{ marginBottom: '8px', padding: '8px', background: '#f0f0f0', borderRadius: '4px' }}>
-                    <p><strong>Process ID:</strong> {tokenId ? `${tokenId.slice(0, 8)}...` : 'N/A'}</p>
-                    <p><strong>Token Address:</strong> {token?.flp_token_process ? (
-                      <span title={token.flp_token_process} style={{ cursor: 'pointer' }}>
-                        {`${token.flp_token_process.slice(0, 8)}...${token.flp_token_process.slice(-4)}`}
-                      </span>
-                    ) : 'N/A'}</p>
-                    <p><strong>Treasury:</strong> {token?.treasury ? (
-                      <span title={token.treasury} style={{ cursor: 'pointer' }}>
-                        {`${token.treasury.slice(0, 8)}...${token.treasury.slice(-4)}`}
-                      </span>
-                    ) : 'N/A'}</p>
-                    <p><strong>Status:</strong> {token?.status || 'N/A'}</p>
-                    <p><strong>Created:</strong> {token?.created_at_ts ? new Date(token.created_at_ts).toLocaleDateString() : 'N/A'}</p>
-                    {/* Check if this token is in the delegation map */}
-                    {delegationMap.has(tokenId) && (
-                      <p>
-                        <strong>Your Delegation:</strong>{' '}
-                        <span style={{ color: '#4a90e2', fontWeight: 'bold' }}>
-                          {delegationMap.get(tokenId)}%
-                        </span>
-                      </p>
-                    )}
-                  </div>
-                  
-                  <div style={{ marginBottom: '12px' }}>
-                    <h4 style={{ marginBottom: '4px' }}>Balance Information</h4>
-                    {tokenData?.isLoading ? (
-                      <StatusLabel $isLoading={true}>
-                        <LoadingSpinner /> Loading balance information...
-                      </StatusLabel>
-                    ) : (
-                      <div style={{ display: 'flex', gap: '8px', justifyContent: 'space-between' }}>
-                        <div style={{ padding: '8px', background: '#eefff5', borderRadius: '4px', flex: 1 }}>
-                          <p><strong>Balance:</strong></p>
-                          <p style={{ fontSize: '1.2rem', fontWeight: 'bold' }}>{tokenData?.balance || '0'}</p>
-                        </div>
-                        <div style={{ padding: '8px', background: '#f5f5ff', borderRadius: '4px', flex: 1 }}>
-                          <p><strong>Claimable:</strong></p>
-                          <p style={{ fontSize: '1.2rem', fontWeight: 'bold' }}>{tokenData?.claimableBalance || '0'}</p>
-                        </div>
-                      </div>
-                    )}
-                  </div>
-                  
-                  <div style={{ marginBottom: '8px' }}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                      <h4 style={{ marginBottom: '4px' }}>Yield History</h4>
-                      <span style={{ fontSize: '0.8rem', color: '#666' }}>
-                        {tokenData?.tickHistory.length || 0} entries
-                      </span>
-                    </div>
-                    
-                    {tokenData?.tickHistory && tokenData.tickHistory.length > 0 ? (
-                      <div style={{ maxHeight: '120px', overflowY: 'auto', background: '#f7f9fa', padding: '8px', borderRadius: '4px' }}>
-                        {tokenData.tickHistory.slice(0, 5).map((entry, idx) => (
-                          <div key={idx} style={{ fontSize: '0.8rem', marginBottom: '4px', padding: '4px', background: idx % 2 === 0 ? '#eef2f5' : 'transparent', borderRadius: '2px' }}>
-                            <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                              <span>Timestamp: {entry.Timestamp}</span>
-                              <span>Amount: {entry.TokensDistributed || entry.PiReceived || '0'}</span>
-                            </div>
-                            {entry.YieldCycle && <div style={{ fontSize: '0.7rem', color: '#666' }}>Cycle: {entry.YieldCycle}</div>}
-                          </div>
-                        ))}
-                        {tokenData.tickHistory.length > 5 && (
-                          <div style={{ textAlign: 'center', fontSize: '0.8rem', color: '#666', marginTop: '4px' }}>
-                            ...and {tokenData.tickHistory.length - 5} more entries
-                          </div>
-                        )}
-                      </div>
-                    ) : (
-                      <div style={{ padding: '8px', background: '#f7f9fa', borderRadius: '4px', fontSize: '0.9rem', color: '#666', textAlign: 'center' }}>
-                        No yield history available
-                      </div>
-                    )}
-                  </div>
-                </TokenCard>
-              );
-            })}
-          </TokenGrid>
-        ) : (
-          <p>No PI tokens available</p>
-        )}
-      </DataCard>
-      
-      <SectionTitle>Tokens Map</SectionTitle>
-      {renderLoadingState('tokensMap')}
-      {renderError('tokensMap')}
-      <DataCard>
-        <h3>Tokens Map (Complete Data)</h3>
-        {tokensMap.size > 0 ? (
-          <div>
-            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '10px', marginBottom: '20px' }}>
-              {Array.from(tokensMap.values()).map((token, index) => (
-                <div key={index} style={{ 
-                  padding: '10px', 
-                  background: '#f9f9f9', 
-                  borderRadius: '8px',
-                  border: '1px solid #eee',
-                  maxWidth: '120px',
-                  textAlign: 'center'
-                }}>
-                  {token.flp_token_logo ? (
-                    <div style={{ width: '50px', height: '50px', margin: '0 auto 8px' }}>
-                      <img 
-                        src={`https://arweave.net/${token.flp_token_logo}`} 
-                        alt={token.flp_token_ticker || 'Token'} 
-                        style={{ width: '100%', height: '100%', objectFit: 'contain', borderRadius: '4px' }}
-                        onError={(e) => {
-                          (e.target as HTMLImageElement).style.display = 'none';
-                        }}
-                      />
-                    </div>
-                  ) : (
-                    <div style={{ 
-                      width: '50px', 
-                      height: '50px', 
-                      background: '#eee',
-                      margin: '0 auto 8px',
-                      borderRadius: '4px',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      fontWeight: 'bold'
-                    }}>
-                      {token.flp_token_ticker?.slice(0, 2) || '??'}
-                    </div>
-                  )}
-                  <div style={{ fontWeight: 'bold', fontSize: '14px' }}>{token.flp_token_ticker || 'Unknown'}</div>
-                  <div style={{ fontSize: '12px', color: '#666', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                    {token.flp_token_name || 'No name'}
-                  </div>
-                </div>
-              ))}
-            </div>
-
-            <PreBlock>
-              {JSON.stringify(Array.from(tokensMap.entries()).map(([key, token]) => [
-                key, 
-                // Show ALL available fields on the token object
-                {
-                  // Essential info
-                  id: token.id,
-                  ticker: token.flp_token_ticker,
-                  name: token.flp_token_name,
-                  token_address: token.flp_token_process,
-                  treasury: token.treasury,
-                  status: token.status,
-                  
-                  // Token metrics
-                  token_denom: token.flp_token_denomination,
-                  total_supply: token.total_token_supply,
-                  token_supply_to_use: token.token_supply_to_use,
-                  decay_factor: token.decay_factor,
-                  
-                  // Important dates
-                  created_at: token.created_at_ts ? new Date(token.created_at_ts).toLocaleDateString() : 'N/A',
-                  last_updated_at: token.last_updated_at_ts ? new Date(token.last_updated_at_ts).toLocaleDateString() : 'N/A',
-                  starts_at: token.starts_at_ts ? new Date(token.starts_at_ts).toLocaleDateString() : 'N/A',
-                  ends_at: token.ends_at_ts ? new Date(token.ends_at_ts).toLocaleDateString() : 'N/A',
-                  
-                  // Distribution info
-                  total_yield_ticks: token.total_yield_ticks,
-                  last_day_distribution: token.last_day_distribution,
-                  accumulated_qty: token.accumulated_qty,
-                  distributed_qty: token.distributed_qty,
-                  withdrawn_qty: token.withdrawn_qty,
-                  accumulated_pi_qty: token.accumulated_pi_qty,
-                  withdrawn_pi_qty: token.withdrawn_pi_qty,
-                  exchanged_for_pi_qty: token.exchanged_for_pi_qty,
-                  
-                  // Metadata
-                  deployer: token.deployer,
-                  flp_token_logo: token.flp_token_logo ? `https://arweave.net/${token.flp_token_logo}` : 'N/A',
-                  flp_token_disclaimer: token.flp_token_disclaimer,
-                  website_url: token.website_url,
-                  twitter_handle: token.twitter_handle,
-                  telegram_handle: token.telegram_handle,
-                  
-                  // Debug info
-                  stats_updated_at: token.stats_updated_at ? new Date(token.stats_updated_at).toLocaleString() : 'N/A',
-                }
-              ]), null, 2)}
-            </PreBlock>
-          </div>
-        ) : (
-          <p>No tokens in map</p>
-        )}
-      </DataCard>
-    </MintContainer>
+      {/* Use the PITokens component */}
+      <PITokens 
+        piTokensData={piTokensData}
+        tokenClientPairs={tokenClientPairs}
+        tokenDataMap={tokenDataMap}
+        isRefreshing={isRefreshing}
+        delegationMap={delegationMap}
+        fetchTokenData={fetchTokenData}
+        refreshAllTokenData={refreshAllTokenData}
+        renderLoadingState={renderLoadingState}
+        renderError={renderError}
+      />
+    </div>
   );
 };
 
