@@ -107,6 +107,15 @@ const Header: React.FC<HeaderProps> = ({ toggleSidebar }) => {
             />
             <span className="name">Join</span>
           </label>
+          <label className="radio">
+            <input
+              type="radio"
+              name="section"
+              checked={activeSection === 'mint'}
+              onChange={() => scrollToSection('mint')}
+            />
+            <span className="name">Mint</span>
+          </label>
         </div>
       </div>
 

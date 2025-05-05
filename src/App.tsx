@@ -6,6 +6,7 @@ import GameCard from './components/GameCard';
 import BackgroundAnimation from './components/BackgroundAnimation';
 import TextScramble from './components/TextScramble';
 import ProductCard from './components/ProductCard';
+import Mint from './components/Mint';
 import { WalletProvider, useWallet } from './shared-components/Wallet/WalletContext';
 import { ScoreProvider } from './shared-components/Score/ScoreContext';
 import { games } from './games/games';
@@ -316,6 +317,9 @@ const AppContent: React.FC = () => {
                   </div>
                 </ProductGrid>
               </JoinSection>
+
+              {/* Mint Section */}
+              <Mint />
             </>
           )}
         </main>
