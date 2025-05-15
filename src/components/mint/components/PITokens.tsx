@@ -1,29 +1,21 @@
 import React from 'react';
-import { PIToken, TickHistoryEntry, PITokenClient } from 'ao-process-clients/dist/src/clients/pi';
+import { PITokenClient } from 'ao-process-clients/dist/src/clients/pi';
+import { PIToken } from 'ao-process-clients/dist/src/clients/pi/oracle/abstract/IPIOracleClient';
+import { TickHistoryEntry } from 'ao-process-clients/dist/src/clients/pi/PIToken/abstract/IPITokenClient';
 import { TokenClient } from 'ao-process-clients/dist/src/clients/ao';
 import { DryRunResult } from '@permaweb/aoconnect/dist/lib/dryrun';
+import { TokenData } from 'ao-process-clients/dist/src/clients/pi/PIToken/types';
 import TokenCard from './TokenCard';
 import '../../Mint.css';
-
-interface TokenData {
-  tokenId: string;
-  processId: string;
-  ticker: string;
-  name: string;
-  balance: string;
-  claimableBalance: string;
-  tickHistory: TickHistoryEntry[];
-  isLoading: boolean;
-  treasury?: string;
-  status?: string;
-  logoUrl?: string;
-  infoData?: DryRunResult;
-}
 
 interface PITokensProps {
   piTokensData: PIToken[];
   tokenClientPairs: [PITokenClient, TokenClient][];
   tokenDataMap: Map<string, TokenData>;
+  baseTokenDataMap: Map<string, {
+    balance: string;
+    info: DryRunResult | null;
+  }>;
   isRefreshing: { [key: string]: boolean };
   delegationMap: Map<string, number>;
   fetchTokenData: (piClient: PITokenClient, baseClient: TokenClient, isRefresh: boolean) => Promise<void>;
@@ -40,6 +32,7 @@ const PITokens: React.FC<PITokensProps> = ({
   piTokensData,
   tokenClientPairs,
   tokenDataMap,
+  baseTokenDataMap,
   isRefreshing,
   delegationMap,
   fetchTokenData,
@@ -82,6 +75,9 @@ const PITokens: React.FC<PITokensProps> = ({
               const tokenData = tokenDataMap.get(tokenId);
               const isTokenRefreshing = isRefreshing[tokenId] || false;
               
+              // Get base token data for this process ID
+              const baseTokenData = baseTokenDataMap.get(processId);
+
               return (
                 <TokenCard
                   key={index}
@@ -90,6 +86,8 @@ const PITokens: React.FC<PITokensProps> = ({
                   processId={processId}
                   token={token}
                   tokenData={tokenData}
+                  baseBalance={baseTokenData?.balance || '0'}
+                  baseInfo={baseTokenData?.info || null}
                   isRefreshing={isTokenRefreshing}
                   delegationMap={delegationMap}
                   fetchTokenData={fetchTokenData}

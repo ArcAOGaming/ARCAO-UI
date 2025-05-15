@@ -1,6 +1,8 @@
-import React from 'react';
-import { DelegationInfo } from 'ao-process-clients/dist/src/clients/pi';
-import { PIToken } from 'ao-process-clients/dist/src/clients/pi';
+import React, { useState, useEffect } from 'react';
+import { DelegationInfo } from 'ao-process-clients/dist/src/clients/pi/delegate/abstract/types';
+import { PIToken } from 'ao-process-clients/dist/src/clients/pi/oracle/abstract/IPIOracleClient';
+import { useWallet } from '../../../shared-components/Wallet/WalletContext';
+import { dryrun } from '../../../config/aoConnection';
 import '../../Mint.css';
 
 interface DelegationManagementProps {
@@ -30,9 +32,92 @@ const DelegationManagement: React.FC<DelegationManagementProps> = ({
   updateDelegation,
   renderLoadingState,
   renderError,
-  tokens = [],
+  tokens,
   processToTokenMap = new Map()
 }) => {
+  // Get the wallet info to check for self-delegations and create clients
+  const { address: walletAddress, isConnected } = useWallet();
+  
+  // State to store token balances
+  const [tokenBalances, setTokenBalances] = useState<Map<string, string>>(new Map());
+  const [isLoadingBalances, setIsLoadingBalances] = useState<boolean>(false);
+  
+  // Fetch token balances for delegations
+  useEffect(() => {
+    const fetchTokenBalances = async () => {
+      if (!delegationData?.delegationPrefs || !walletAddress || !isConnected) return;
+      
+      setIsLoadingBalances(true);
+      const newBalances = new Map<string, string>();
+      
+      try {
+        // Process delegations in parallel
+        await Promise.all(delegationData.delegationPrefs.map(async (pref) => {
+          // Check if this is the user's own address (self-delegation)
+          const isSelfDelegation = walletAddress && pref.walletTo === walletAddress;
+          
+          // For self-delegations, use AO token process ID
+          const AO_TOKEN_PROCESS_ID = '0syT13r0s0tgPmIed95bJnuSqaD29HQNN8D3ElLSrsc';
+          
+          // Get token display info for the delegation address
+          const matchingToken = processToTokenMap.get(pref.walletTo);
+          
+          // The token display object - either AO token for self-delegations or the matched token
+          const token = isSelfDelegation ? {
+            ticker: 'AO',
+            status: 'active',
+            process: AO_TOKEN_PROCESS_ID
+          } : matchingToken;
+          
+          // IMPORTANT: Use the base token process ID (flp_token_process) instead of the delegation address
+          // for making the token client, except for self-delegations where we use AO token
+          const processId = isSelfDelegation 
+            ? AO_TOKEN_PROCESS_ID 
+            : (matchingToken?.flp_token_process || pref.walletTo); // Fall back to delegation address if no flp_token_process
+          
+          try {
+            // Use dryrun directly to get balance information
+            // This avoids the wallet integration issues with TokenClient
+            console.log(`Fetching balance for delegation to ${pref.walletTo}`);
+            console.log(`Using base token process ID ${processId}${isSelfDelegation ? ' (AO Token)' : matchingToken?.flp_token_process ? ' (flp_token_process)' : ' (fallback to delegation address)'}`);
+            
+            const response = await dryrun({
+              process: processId,
+              tags: [
+                { name: "Action", value: "Balance" },
+                { name: "Target", value: walletAddress }
+              ]
+            });
+            
+            const balance = response?.Messages?.[0]?.Data || '0';
+            console.log(`Balance for ${matchingToken?.ticker || 'AO'} token (${processId}): ${balance}`);
+            
+            // Store balance using the process ID as the key
+            newBalances.set(processId, balance);
+            
+            // If this delegation has a matching token, also store the balance under the token's process ID
+            if (token && token.process) {
+              newBalances.set(token.process, balance);
+            }
+          } catch (error) {
+            console.error(`Failed to get balance for delegation to ${pref.walletTo}:`, error);
+            newBalances.set(processId, '0');
+            if (token?.process) {
+              newBalances.set(token.process, '0');
+            }
+          }
+        }));
+        
+        setTokenBalances(newBalances);
+      } catch (error) {
+        console.error('Error fetching token balances:', error);
+      } finally {
+        setIsLoadingBalances(false);
+      }
+    };
+    
+    fetchTokenBalances();
+  }, [delegationData, walletAddress, isConnected, processToTokenMap]);
   return (
     <div>
       <h2 className="section-title">Delegation Management</h2>
@@ -99,9 +184,22 @@ const DelegationManagement: React.FC<DelegationManagementProps> = ({
                   <tbody>
                     {delegationData.delegationPrefs.map((pref: {walletTo: string; factor: number}, index: number) => {
                       const percentage = parseFloat(((pref.factor / parseInt(delegationData.totalFactor)) * 100).toFixed(2));
+                      
+                      // Check if this is the user's own address (self-delegation)
+                      const isSelfDelegation = walletAddress && pref.walletTo === walletAddress;
+                      
                       // Find token associated with this address
                       const matchingToken = processToTokenMap.get(pref.walletTo);
-                      const token = matchingToken || null;
+                      
+                      // For self-delegations, create an AOToken display object
+                      // Using the same process ID as in the fetchTokenBalances function
+                      const AO_TOKEN_PROCESS_ID = '0syT13r0s0tgPmIed95bJnuSqaD29HQNN8D3ElLSrsc';
+                      const token = isSelfDelegation ? {
+                        ticker: 'AO',
+                        status: 'active',
+                        process: AO_TOKEN_PROCESS_ID
+                      } : (matchingToken || null);
+                      
                       const ticker = token?.ticker || token?.flp_token_ticker || '';
                       const shortAddr = `${pref.walletTo.slice(0, 4)}...${pref.walletTo.slice(-4)}`;
                       
@@ -137,7 +235,39 @@ const DelegationManagement: React.FC<DelegationManagementProps> = ({
                                     {ticker.slice(0, 2)}
                                   </div>
                                 )}
-                                <span>{ticker}</span>
+                                <div style={{ display: 'flex', flexDirection: 'column' }}>
+                                  <span 
+                                    title={`Click to copy token ID: ${token?.process || 'Unknown'}`}
+                                    style={{ cursor: 'pointer' }}
+                                    onClick={(e) => {
+                                      if (token?.process) {
+                                        // Copy to clipboard
+                                        navigator.clipboard.writeText(token.process);
+                                        
+                                        // Create temporary "Copied!" tooltip
+                                        const target = e.currentTarget;
+                                        const originalTitle = target.title;
+                                        
+                                        // Change title to "Copied!"
+                                        target.title = "Copied!";
+                                        target.style.color = "#28a745";
+                                        
+                                        // Reset after 1.5 seconds
+                                        setTimeout(() => {
+                                          target.title = originalTitle;
+                                          target.style.color = "";
+                                        }, 1500);
+                                      }
+                                    }}
+                                  >
+                                    {ticker} <span style={{ fontSize: '0.8rem', color: '#888' }}>
+                                      ({token?.process ? `${token.process.slice(0, 4)}...${token.process.slice(-4)}` : 'Unknown ID'})
+                                    </span>
+                                  </span>
+                                  <span style={{ fontSize: '0.8rem', color: '#666' }}>
+                                    {isLoadingBalances ? 'Loading...' : `Balance: ${tokenBalances.get(pref.walletTo) || tokenBalances.get(token?.process || '') || '0'}`}
+                                  </span>
+                                </div>
                               </div>
                             ) : (
                               '—'

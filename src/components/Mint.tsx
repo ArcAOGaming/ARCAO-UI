@@ -1,5 +1,16 @@
 import React, { useState, useEffect } from 'react';
-import { PIOracleClient, PIOracleClientBuilder, PITokenClient, PIToken, TickHistoryEntry, DelegationInfo, PIDelegateClient, PIDelegateClientBuilder } from 'ao-process-clients/dist/src/clients/pi';
+import styled from 'styled-components';
+import { 
+  PIOracleClient,
+  PITokenClient, 
+  PIDelegateClient
+} from 'ao-process-clients/dist/src/clients/pi';
+// Use specific type imports from their correct locations
+import { PIToken } from 'ao-process-clients/dist/src/clients/pi/oracle/abstract/IPIOracleClient';
+import { TickHistoryEntry } from 'ao-process-clients/dist/src/clients/pi/PIToken/abstract/IPITokenClient';
+import { DelegationInfo } from 'ao-process-clients/dist/src/clients/pi/delegate/abstract/types';
+import { TokenData } from 'ao-process-clients/dist/src/clients/pi/PIToken/types';
+import { TokenClientMap, TokenClientPair, StateStructure } from 'ao-process-clients/dist/src/clients/pi/oracle/types';
 import { TokenClient } from 'ao-process-clients/dist/src/clients/ao';
 import { DryRunResult } from '@permaweb/aoconnect/dist/lib/dryrun';
 import { useWallet } from '../shared-components/Wallet/WalletContext';
@@ -9,53 +20,21 @@ import './Mint.css';
 import PITokens from './mint/components/PITokens';
 import DelegationManagement from './mint/components/DelegationManagement';
 
-// Define interfaces for component state
-interface StateStructure {
-  oracleClient: boolean;
-  delegateClient: boolean;
-  delegateInfo: boolean;
-  piTokens: boolean;
-  tokenInfo: boolean;
-  tickHistory: boolean;
-  balance: boolean;
-  claimableBalance: boolean;
-  tokenClients: boolean;
-  tokenClientPairs: boolean;
-  delegationInfo: boolean;
-  updatingDelegation: boolean;
-}
+// StateStructure type is now imported from ao-process-clients
 
 // All styled components have been replaced with CSS classes from Mint.css
 
 // Helper component for loading spinner
+// Helper components for the Mint component
+
 const LoadingSpinner: React.FC = () => {
   return <div className="loading-spinner"></div>;
 };
 
 
-interface TokenClientPair {
-  piClient: PITokenClient;
-  baseClient: TokenClient;
-}
+// TokenClientPair and TokenClientMap types are now imported from ao-process-clients
 
-interface TokenClientMap {
-  [key: string]: TokenClientPair;
-}
-
-interface TokenData {
-  tokenId: string;      // PI Token Process ID
-  processId: string;    // Base Token Process ID
-  ticker: string;       // Token ticker
-  name: string;
-  balance: string;
-  claimableBalance: string;
-  tickHistory: TickHistoryEntry[];
-  isLoading: boolean;
-  treasury?: string;
-  status?: string;
-  logoUrl?: string;
-  infoData?: DryRunResult;
-}
+// TokenData type is now imported from ao-process-clients
 
 const Mint: React.FC = () => {
   // Get the wallet address from the wallet context
@@ -75,6 +54,10 @@ const Mint: React.FC = () => {
   const [tokensMap, setTokensMap] = useState<Map<string, PIToken>>(new Map());
   const [tokenClientPairs, setTokenClientPairs] = useState<[PITokenClient, TokenClient][]>([]);
   const [tokenDataMap, setTokenDataMap] = useState<Map<string, TokenData>>(new Map());
+  const [baseTokenDataMap, setBaseTokenDataMap] = useState<Map<string, {
+    balance: string;
+    info: DryRunResult | null;
+  }>>(new Map());
   const [isRefreshing, setIsRefreshing] = useState<{[key: string]: boolean}>({});
   const [delegationMap, setDelegationMap] = useState<Map<string, number>>(new Map()); // Map of token ID to delegation percentage
   
@@ -131,24 +114,38 @@ const Mint: React.FC = () => {
     
     // Initialize the Oracle client with custom CU URL
     const initOracleClient = () => {
-      // Create an instance with custom CU URL
-      const builder = new PIOracleClientBuilder();
-      const client = builder.withAOConfig({
-        MODE: 'legacy',
-        CU_URL: "https://cu.ao-testnet.xyz"
-      }).build();
+      // Process ID for the Oracle client (from ao-process-clients constants)
+      const DELEGATION_ORACLE_PROCESS_ID = 'It-_AKlEfARBmJdbJew1nG9_hIaZt0t20wQc28mFGBE';
+      
+      // Create an instance with custom CU URL using the static build method
+      const client = PIOracleClient.builder()
+        .withProcessId(DELEGATION_ORACLE_PROCESS_ID) // Add the required process ID
+        .withAOConfig({
+          MODE: 'legacy',
+          CU_URL: "https://ur-cu.randao.net"
+        })
+        .build();
       setOracleClient(client);
       return client;
     };
     
     // Initialize the Delegate client with custom CU URL
     const initDelegateClient = () => {
-      // Create a new instance with the custom CU URL
-      const builder = new PIDelegateClientBuilder();
-      const client = builder.withAOConfig({
-        MODE: 'legacy',
-        CU_URL: "https://cu.ao-testnet.xyz"
-      }).build();
+      // Process ID for the Delegate client (from ao-process-clients constants)
+      const PI_DELEGATE_PROCESS_ID = 'cuxSKjGJ-WDB9PzSkVkVVrIBSh3DrYHYz44usQOj5yE';
+      
+      console.log('Creating a PIDelegateClient with improved error handling');
+      
+      // Create the client with the primary endpoint
+      const client = PIDelegateClient.builder()
+        .withProcessId(PI_DELEGATE_PROCESS_ID) // Add the required process ID
+        .withAOConfig({
+          MODE: 'legacy',
+          CU_URL: "https://ur-cu.randao.net"
+        })
+        .build();
+      
+      console.log('PIDelegateClient created');
       setDelegateClient(client);
       return client;
     };
@@ -243,34 +240,9 @@ const Mint: React.FC = () => {
       try {
         setLoading(prev => ({ ...prev, tokenClients: true, tokenClientPairs: true }));
         
-        // Instead of calling createTokenClientPairsArray() which would make another getPITokens call,
-        // create the client pairs manually using our already fetched tokens data
-        const clientPairs: [PITokenClient, TokenClient][] = [];
-        
-        // Create client pairs for each token using our existing parsedTokens data
-        for (const token of parsedTokens) {
-          const ticker = token.ticker || token.flp_token_ticker;
-          const id = token.id;
-          const processId = token.process || token.flp_token_process;
-          
-          // Only create clients if we have both ID and process
-          if (ticker && id && processId) {
-            // Create PITokenClient using the ID field
-            const piTokenClient = new PITokenClient({
-              ...oracleClient.baseConfig,
-              processId: id
-            });
-            
-            // Create TokenClient using the process field
-            const baseClient = new TokenClient({
-              ...oracleClient.baseConfig,
-              processId: processId
-            });
-            
-            // Add the pair to our array
-            clientPairs.push([piTokenClient, baseClient]);
-          }
-        }
+        // Use the built-in method from ao-process-clients to create client pairs
+        // This now uses the default builder pattern under the hood
+        const clientPairs = await oracleClient.createTokenClientPairsArray();
         
         console.log(`Created ${clientPairs.length} token client pairs (without redundant API call)`);
         setTokenClientPairs(clientPairs);
@@ -380,7 +352,7 @@ const Mint: React.FC = () => {
   const fetchTokenClients = async (client: PIOracleClient) => {
     try {
       setLoading(prev => ({ ...prev, tokenClients: true }));
-      // Using the new client pairs method instead of the deprecated createTokenClients
+      // Use the createTokenClientPairs method that now uses default builders
       const clientPairsMap = await client.createTokenClientPairs();
       
       // Convert Map to object for easier state management
@@ -406,6 +378,7 @@ const Mint: React.FC = () => {
   const fetchTokenClientPairs = async (client: PIOracleClient) => {
     try {
       setLoading(prev => ({ ...prev, tokenClientPairs: true }));
+      // This method now uses default builders under the hood
       const clientPairs = await client.createTokenClientPairsArray();
       setTokenClientPairs(clientPairs);
       setErrors(prev => ({ ...prev, tokenClientPairs: null }));
@@ -417,11 +390,11 @@ const Mint: React.FC = () => {
     }
   };
   
-  // Function to fetch delegation information
+  // Function to fetch delegation information with improved error handling and fallback
   const fetchDelegationInfo = async (client: PIDelegateClient) => {
     try {
       setLoading(prev => ({ ...prev, delegationInfo: true }));
-      console.log('Fetching delegation information...');
+      console.log('Fetching delegation information with enhanced error handling...');
       
       // Check if wallet address is available
       if (!walletAddress) {
@@ -431,27 +404,82 @@ const Mint: React.FC = () => {
       
       console.log(`Using wallet address for delegation check: ${walletAddress}`);
       
-      // Get delegation data with wallet address
+      // Set up fallback endpoints to try in order
+      const endpoints = [
+        "https://ur-cu.randao.net",
+        "https://cu4.randao.net", 
+        "https://ao-testnet-cu.onrender.com",
+        "https://ao-cu.web.app"
+      ];
+      
+      // Create timeout promise - will reject after 15 seconds (from memory)
+      const createTimeoutPromise = () => {
+        return new Promise<string>((_, reject) => {
+          setTimeout(() => {
+            reject(new Error('Delegation info request timed out after 15 seconds'));
+          }, 15000);
+        });
+      };
+      
+      // Try to get delegation data with fallback
       let delegationDataStr = '';
-      try {
-        // Using the updated getDelegation method that accepts wallet address
-        delegationDataStr = await client.getDelegation(walletAddress);
-        console.log('Raw delegation data string:', delegationDataStr);
+      let lastError: Error | null = null;
+      let success = false;
+      
+      // Try each endpoint until one succeeds or all fail
+      for (const endpoint of endpoints) {
+        if (success) break;
         
-        // Log the raw data as an object if possible
         try {
-          const rawDataObj = JSON.parse(delegationDataStr);
-          console.log('Raw delegation data as object:', rawDataObj);
-          console.log('Total factor:', rawDataObj.totalFactor);
-          console.log('Delegation preferences:', rawDataObj.delegationPrefs);
-          console.log('Last update:', new Date(rawDataObj.lastUpdate).toLocaleString());
-          console.log('Wallet:', rawDataObj.wallet);
-        } catch (parseErr) {
-          console.error('Error parsing raw delegation data:', parseErr);
+          console.log(`Attempting to use endpoint: ${endpoint}`);
+          // Create a client configured with the current endpoint
+          const tempClient = PIDelegateClient.builder()
+            .withProcessId(client.baseConfig.processId)
+            .withAOConfig({
+              MODE: 'legacy',
+              CU_URL: endpoint
+            })
+            .build();
+          
+          // Race between the getDelegation call and a timeout
+          delegationDataStr = await Promise.race([
+            tempClient.getDelegation(walletAddress),
+            createTimeoutPromise()
+          ]);
+          
+          // If we get here, the call succeeded
+          console.log(`Successfully got delegation data from ${endpoint}`);
+          success = true;
+          
+          // Log the data for debugging
+          console.log('Raw delegation data string:', delegationDataStr);
+          try {
+            const rawDataObj = JSON.parse(delegationDataStr);
+            console.log('Raw delegation data as object:', rawDataObj);
+            console.log('Total factor:', rawDataObj.totalFactor);
+            console.log('Delegation preferences:', rawDataObj.delegationPrefs);
+            console.log('Last update:', new Date(rawDataObj.lastUpdate).toLocaleString());
+            console.log('Wallet:', rawDataObj.wallet);
+          } catch (parseErr) {
+            console.error('Error parsing raw delegation data:', parseErr);
+          }
+        } catch (error) {
+          console.warn(`Error with endpoint ${endpoint}:`, error);
+          lastError = error as Error;
+          // Continue to next endpoint
         }
-      } catch (error) {
-        console.error('Error getting delegation data:', error);
-        return; // Exit early if we can't get delegation data
+      }
+      
+      // If all endpoints failed, use a default empty response
+      if (!success) {
+        console.error('All endpoints failed:', lastError);
+        console.log('Using default empty delegation data');
+        delegationDataStr = JSON.stringify({
+          totalFactor: "0",
+          delegationPrefs: [],
+          lastUpdate: Date.now(),
+          wallet: walletAddress || "unknown"
+        });
       }
       
       if (!delegationDataStr) {
@@ -507,7 +535,7 @@ const Mint: React.FC = () => {
     }
   };
   
-  // Function to update delegation preferences with new format
+  // Function to update delegation preferences with fallback mechanism
   const updateDelegation = async () => {
     if (!delegateClient || !walletAddress) {
       console.error('Delegate client or wallet address not available');
@@ -516,19 +544,74 @@ const Mint: React.FC = () => {
     
     try {
       setLoading(prev => ({ ...prev, updatingDelegation: true }));
-      console.log('Updating delegation preference...');
-      console.log('Delegation data to send:', {
-        walletFrom: walletAddress,
-        walletTo: delegationForm.walletTo,
-        factor: delegationForm.factor
-      });
+      console.log('Updating delegation preference with fallback mechanism...');
       
-      // Need to use type assertion because the updated interface isn't reflected in the distributed types yet
-      const result = await delegateClient.setDelegation({
+      const delegationData = {
         walletFrom: walletAddress,
         walletTo: delegationForm.walletTo,
         factor: delegationForm.factor
-      } as any);
+      };
+      
+      console.log('Delegation data to send:', delegationData);
+      
+      // Set up fallback endpoints to try in order (same as in fetchDelegationInfo)
+      const endpoints = [
+        "https://ur-cu.randao.net",
+        "https://cu4.randao.net", 
+        "https://ao-testnet-cu.onrender.com",
+        "https://ao-cu.web.app"
+      ];
+      
+      // Create timeout promise - will reject after 15 seconds
+      const createTimeoutPromise = () => {
+        return new Promise<string>((_, reject) => {
+          setTimeout(() => {
+            reject(new Error('Delegation update request timed out after 15 seconds'));
+          }, 15000);
+        });
+      };
+      
+      // Track last error and success status
+      let lastError: Error | null = null;
+      let success = false;
+      let result = '';
+      
+      // Try each endpoint until one succeeds or all fail
+      for (const endpoint of endpoints) {
+        if (success) break;
+        
+        try {
+          console.log(`Attempting to update delegation using endpoint: ${endpoint}`);
+          
+          // Create a client configured with the current endpoint
+          const tempClient = PIDelegateClient.builder()
+            .withProcessId(delegateClient.baseConfig.processId)
+            .withAOConfig({
+              MODE: 'legacy',
+              CU_URL: endpoint
+            })
+            .build();
+          
+          // Race between the setDelegation call and a timeout
+          result = await Promise.race([
+            tempClient.setDelegation(delegationData as any),
+            createTimeoutPromise()
+          ]);
+          
+          // If we get here, the call succeeded
+          console.log(`Successfully updated delegation using ${endpoint}`);
+          success = true;
+        } catch (error) {
+          console.warn(`Error with endpoint ${endpoint}:`, error);
+          lastError = error as Error;
+          // Continue to next endpoint
+        }
+      }
+      
+      // Check if any endpoint succeeded
+      if (!success) {
+        throw lastError || new Error('All endpoints failed when updating delegation');
+      }
       
       console.log('Delegation update result:', result);
       setDelegationForm(prev => ({ ...prev, formDirty: false }));
@@ -626,10 +709,19 @@ const Mint: React.FC = () => {
         });
       }
       
-      // Fetch essential data in parallel (removing token info as it's already available in the FLP data)
-      const [balance, claimableBalance, tickHistoryStr] = await Promise.all([
+      // Fetch essential data in parallel (both PI token and base token data)
+      const [
+        // PI Token data
+        balance, 
+        claimableBalance, 
+        tickHistoryStr,
+        // Base Token data
+        baseBalance,
+        baseInfoResponse
+      ] = await Promise.all([
+        // PI Token requests
         piClient.getBalance().catch(error => {
-          console.error(`Error fetching balance for ${tokenId}:`, error);
+          console.error(`Error fetching PI balance for ${tokenId}:`, error);
           return '0';
         }),
         piClient.getClaimableBalance().catch(error => {
@@ -639,6 +731,15 @@ const Mint: React.FC = () => {
         piClient.getTickHistory().catch(error => {
           console.error(`Error fetching tick history for ${tokenId}:`, error);
           return '[]';
+        }),
+        // Base Token requests
+        baseClient.balance().catch(error => {
+          console.error(`Error fetching base token balance for ${processId}:`, error);
+          return '0';
+        }),
+        baseClient.dryrun('', [{ name: "Action", value: "Info" }]).catch(error => {
+          console.error(`Error fetching base token info for ${processId}:`, error);
+          return null;
         })
       ]);
       
@@ -651,7 +752,13 @@ const Mint: React.FC = () => {
         console.error(`Error parsing tick history for ${tokenId}:`, error);
       }
       
-      // Update state with fetched data
+      // Log base token information
+      console.log(`Base token balance for ${processId}: ${baseBalance}`);
+      if (baseInfoResponse) {
+        console.log(`Base token info for ${processId}:`, baseInfoResponse);
+      }
+      
+      // Update token data state
       setTokenDataMap(prev => {
         const newMap = new Map(prev);
         newMap.set(tokenId, {
@@ -670,7 +777,21 @@ const Mint: React.FC = () => {
         return newMap;
       });
       
-      console.log(`Successfully fetched data for token ${tokenId}: Balance=${balance}, Claimable=${claimableBalance}`);
+      // Update base token data state separately
+      setBaseTokenDataMap(prev => {
+        const newMap = new Map(prev);
+        newMap.set(processId, {
+          balance: baseBalance,
+          info: baseInfoResponse
+        });
+        return newMap;
+      });
+      
+      console.log(`Successfully fetched data for token ${tokenId}:\n` + 
+                 `PI Token - Balance: ${balance}, Claimable: ${claimableBalance}\n` +
+                 `Base Token - Balance: ${baseBalance}`);
+      console.log(`Full token data updated for ${ticker} (${tokenId})`);
+      
     } catch (error) {
       console.error(`Error in fetchTokenData for ${tokenId}:`, error);
       // Update error state
@@ -698,19 +819,30 @@ const Mint: React.FC = () => {
   
   // Function to refresh all token data
   const refreshAllTokenData = async () => {
-    if (tokenClientPairs.length === 0) return;
-    
-    console.log(`Refreshing data for all ${tokenClientPairs.length} tokens`);
-    setIsRefreshing(prev => {
-      const newState = { ...prev };
-      tokenClientPairs.forEach(([piClient, baseClient]) => {
-        newState[piClient.baseConfig.processId] = true;
+    try {
+      // Set all tokens to refreshing state
+      const refreshingState: { [key: string]: boolean } = {};
+      tokenClientPairs.forEach(([piClient]) => {
+        refreshingState[piClient.baseConfig.processId] = true;
       });
-      return newState;
-    });
-    
-    await Promise.all(tokenClientPairs.map(([piClient, baseClient]) => 
-      fetchTokenData(piClient, baseClient, true)));
+      setIsRefreshing(refreshingState);
+      
+      // Refresh all tokens in parallel
+      await Promise.all(tokenClientPairs.map(([piClient, baseClient]) => 
+        fetchTokenData(piClient, baseClient, true)
+      ));
+      
+      console.log('All token data refreshed');
+    } catch (error) {
+      console.error('Error refreshing all token data:', error);
+    } finally {
+      // Clear all refreshing states
+      const clearState: { [key: string]: boolean } = {};
+      tokenClientPairs.forEach(([piClient]) => {
+        clearState[piClient.baseConfig.processId] = false;
+      });
+      setIsRefreshing(clearState);
+    }
   };
   
   return (
@@ -748,6 +880,7 @@ const Mint: React.FC = () => {
         piTokensData={piTokensData}
         tokenClientPairs={tokenClientPairs}
         tokenDataMap={tokenDataMap}
+        baseTokenDataMap={baseTokenDataMap}
         isRefreshing={isRefreshing}
         delegationMap={delegationMap}
         fetchTokenData={fetchTokenData}

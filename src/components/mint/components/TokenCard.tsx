@@ -26,6 +26,9 @@ interface TokenCardProps {
   processId: string;
   token: PIToken | undefined;
   tokenData: TokenData | undefined;
+  // Base token data passed as separate properties
+  baseBalance?: string;
+  baseInfo?: DryRunResult | null;
   isRefreshing: boolean;
   delegationMap: Map<string, number>;
   fetchTokenData: (piClient: PITokenClient, baseClient: TokenClient, isRefresh: boolean) => Promise<void>;
@@ -43,6 +46,8 @@ const TokenCard: React.FC<TokenCardProps> = ({
   processId,
   token,
   tokenData,
+  baseBalance,
+  baseInfo,
   isRefreshing,
   delegationMap,
   fetchTokenData,
@@ -190,7 +195,7 @@ const TokenCard: React.FC<TokenCardProps> = ({
             
             {/* Balance Information Section */}
             <div style={{ marginBottom: '20px' }}>
-              <h4 style={{ marginBottom: '8px', borderBottom: '1px solid #ddd', paddingBottom: '6px' }}>Balance Information</h4>
+              <h4 style={{ marginBottom: '8px', borderBottom: '1px solid #ddd', paddingBottom: '6px' }}>PI Token Balance</h4>
               {tokenData?.isLoading ? (
                 <div className="status-label loading">
                   <LoadingSpinner /> Loading balance information...
@@ -205,6 +210,35 @@ const TokenCard: React.FC<TokenCardProps> = ({
                     <p><strong>Claimable:</strong></p>
                     <p className="balance-amount">{tokenData?.claimableBalance || '0'}</p>
                   </div>
+                </div>
+              )}
+            </div>
+
+            {/* Base Token Information Section */}
+            <div style={{ marginBottom: '20px' }}>
+              <h4 style={{ marginBottom: '8px', borderBottom: '1px solid #ddd', paddingBottom: '6px' }}>Base Token Balance</h4>
+              {tokenData?.isLoading ? (
+                <div className="status-label loading">
+                  <LoadingSpinner /> Loading balance information...
+                </div>
+              ) : (
+                <div className="balance-container">
+                  <div className="balance-box available" style={{ width: '100%' }}>
+                    <p><strong>Balance:</strong></p>
+                    <p className="balance-amount">{baseBalance || '0'}</p>
+                  </div>
+                  {baseInfo && (
+                    <div className="base-token-info" style={{ fontSize: '0.8rem', marginTop: '10px', color: '#666' }}>
+                      {baseInfo.Messages?.[0]?.Data && (
+                        <details>
+                          <summary style={{ cursor: 'pointer', marginBottom: '5px' }}>Base Token Info</summary>
+                          <pre style={{ background: '#f0f0f0', padding: '8px', borderRadius: '4px', overflow: 'auto', maxHeight: '150px' }}>
+                            {JSON.stringify(JSON.parse(baseInfo.Messages[0].Data), null, 2)}
+                          </pre>
+                        </details>
+                      )}
+                    </div>
+                  )}
                 </div>
               )}
             </div>
@@ -233,7 +267,7 @@ const TokenCard: React.FC<TokenCardProps> = ({
               {tokenData?.tickHistory && tokenData.tickHistory.length > 0 ? (
                 <>
                   <div className="history-container">
-                    {tokenData.tickHistory.slice(0, 5).map((entry, idx) => (
+                    {tokenData.tickHistory.slice(0, 5).map((entry: TickHistoryEntry, idx: number) => (
                       <div key={idx} className={`history-entry ${idx % 2 === 0 ? 'history-entry-even' : ''}`}>
                         <div className="history-entry-row">
                           <span>Date: {new Date(entry.Timestamp * 1000).toLocaleString()}</span>
@@ -254,7 +288,7 @@ const TokenCard: React.FC<TokenCardProps> = ({
                             View {tokenData.tickHistory.length - 5} more entries...
                           </summary>
                           <div className="history-container">
-                            {tokenData.tickHistory.slice(5).map((entry, idx) => (
+                            {tokenData.tickHistory.slice(5).map((entry: TickHistoryEntry, idx: number) => (
                               <div key={idx + 5} className={`history-entry ${(idx + 5) % 2 === 0 ? 'history-entry-even' : ''}`}>
                                 <div className="history-entry-row">
                                   <span>Date: {new Date(entry.Timestamp * 1000).toLocaleString()}</span>

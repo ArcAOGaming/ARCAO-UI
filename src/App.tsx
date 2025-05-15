@@ -6,6 +6,7 @@ import GameCard from './components/GameCard';
 import BackgroundAnimation from './components/BackgroundAnimation';
 import TextScramble from './components/TextScramble';
 import ProductCard from './components/ProductCard';
+import Delegate from './sections/Delegate';
 import Mint from './components/Mint';
 import { WalletProvider, useWallet } from './shared-components/Wallet/WalletContext';
 import { ScoreProvider } from './shared-components/Score/ScoreContext';
@@ -318,8 +319,13 @@ const AppContent: React.FC = () => {
                 </ProductGrid>
               </JoinSection>
 
+              {/* Delegate Section */}
+              <section id="delegate" className="delegate-section">
+                <Delegate />
+              </section>
+
               {/* Mint Section */}
-              <Mint />
+              {/* <Mint /> */}
             </>
           )}
         </main>

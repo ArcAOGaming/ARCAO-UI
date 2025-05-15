@@ -21,7 +21,7 @@ const Header: React.FC<HeaderProps> = ({ toggleSidebar }) => {
   useEffect(() => {
     const handleScroll = () => {
       const scrollPosition = window.scrollY + window.innerHeight / 2;
-      const sections = ['start', 'games', 'about', 'join'].map(id => {
+      const sections = ['start', 'games', 'about', 'join', 'delegate'].map(id => {
         const element = document.getElementById(id);
         if (!element) return { id, top: 0 };
         return {
@@ -107,7 +107,7 @@ const Header: React.FC<HeaderProps> = ({ toggleSidebar }) => {
             />
             <span className="name">Join</span>
           </label>
-          <label className="radio">
+          {/* <label className="radio">
             <input
               type="radio"
               name="section"
@@ -115,6 +115,15 @@ const Header: React.FC<HeaderProps> = ({ toggleSidebar }) => {
               onChange={() => scrollToSection('mint')}
             />
             <span className="name">Mint</span>
+          </label> */}
+          <label className="radio">
+            <input
+              type="radio"
+              name="section"
+              checked={activeSection === 'delegate'}
+              onChange={() => scrollToSection('delegate')}
+            />
+            <span className="name">Delegate</span>
           </label>
         </div>
       </div>
