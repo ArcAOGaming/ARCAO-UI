@@ -320,7 +320,7 @@ const AppContent: React.FC = () => {
               </JoinSection>
 
               {/* Delegate Section */}
-              <section id="delegate" className="delegate-section">
+              <section id="delegate" className="delegate-section" style={{ marginTop: '8rem' }}>
                 <Delegate />
               </section>
 

@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useWallet } from '../shared-components/Wallet/WalletContext';
 import { PIDelegateClient } from 'ao-process-clients';
 import './Delegate2ArcAO.css';
+import { AO } from '@arcaogaming/project-links';
 
 // Type definitions for delegation data
 interface DelegationInfo {
@@ -364,9 +365,8 @@ const Delegate2ArcAO: React.FC = () => {
             <div className="delegations-list">
               <div className="delegations-table">
                 <div className="table-header">
-                  <div className="wallet-column">Wallet</div>
+                  <div className="wallet-column">Delegated</div>
                   <div className="percentage-column">Percentage</div>
-                  <div className="factor-column">Factor</div>
                   <div className="actions-column">Actions</div>
                 </div>
                 
@@ -379,7 +379,6 @@ const Delegate2ArcAO: React.FC = () => {
                       {formatAddress(delegation.walletTo)}
                     </div>
                     <div className="percentage-column">{delegation.percentage}%</div>
-                    <div className="factor-column">{delegation.factor}</div>
                     <div className="actions-column">
                       <button 
                         onClick={() => updateDelegation(delegation.walletTo, 0)}
@@ -395,7 +394,6 @@ const Delegate2ArcAO: React.FC = () => {
                 <div className="total-row">
                   <div className="wallet-column">Total</div>
                   <div className="percentage-column">100%</div>
-                  <div className="factor-column">{totalFactor}</div>
                   <div className="actions-column"></div>
                 </div>
               </div>
@@ -408,13 +406,21 @@ const Delegate2ArcAO: React.FC = () => {
               onClick={delegateToArcAO}
               disabled={loading.updatingDelegation}
             >
-              {loading.updatingDelegation ? 'Processing...' : 'Delegate 100% to ArcAO'}
+              {loading.updatingDelegation ? 'Processing...' : 'Delegate to ArcAO'}
             </button>
             
             <div className="info-note">
+              <p><strong>Support the Future of ArcAO</strong></p>
+
               <p>
-                Delegating 100% to ArcAO will clear all your existing delegations and set ArcAO as your only delegate.
-                This helps support the ArcAO platform and its development.
+              By delegating your <strong>AO Yield</strong> to the <strong>ArcAO Fair Launch</strong>, you’re not just redirecting resources—you’re becoming an <strong>early-stage funder</strong> of the ArcAO ecosystem.
+              </p>
+
+              <p>
+              This exclusive delegation sets <strong>ArcAO as your sole delegate</strong>, helping power its growth and development.
+              </p>
+              <p>
+                Want more control? Visit the <a href={AO.delegate}>AO Delegations Page</a> for granular options.
               </p>
             </div>
           </div>

@@ -1,5 +1,7 @@
+import { ARCAO } from "@arcaogaming/project-links"
+
 export const ARCAO_LINKS = {
-    X: "https://x.com/Arc_AO",
+    X: ARCAO.twitterFollow,
     GITHUB: "https://github.com/ArcAOGaming",
     DISCORD_INVITE: "https://discord.com/invite/arc-ao",
     TELEGRAM_INVITE: "https://t.me/ArcAOGames",

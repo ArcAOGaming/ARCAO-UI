@@ -2,11 +2,11 @@ import React, { useState, useEffect } from 'react';
 import styled from 'styled-components';
 import Delegate2ArcAO from '../components/Delegate2ArcAO';
 
-// Set this to false to disable the countdown and show the delegate component normally
-const SHOW_COUNTDOWN = true;
-
 // Target date: Friday, May 23rd 2025, 8AM Eastern Time
-const TARGET_DATE = new Date('2025-05-23T08:00:00-04:00').getTime();
+const TARGET_DATE = new Date('2025-05-14T08:00:00-04:00').getTime();
+
+// Show countdown only if target date hasn't passed
+const SHOW_COUNTDOWN = Date.now() < TARGET_DATE;
 
 const CountdownContainer = styled.div`
   position: absolute;
@@ -18,9 +18,9 @@ const CountdownContainer = styled.div`
   flex-direction: column;
   justify-content: center;
   align-items: center;
-  background: rgba(0, 0, 0, 0.75);
+  background: rgba(255, 255, 255, 0.95);
   z-index: 100;
-  color: white;
+  color: #333;
   font-family: 'Roboto Mono', monospace;
   backdrop-filter: blur(4px);
 `;
@@ -31,8 +31,7 @@ const CountdownTitle = styled.h1`
   text-align: center;
   text-transform: uppercase;
   letter-spacing: 2px;
-  color: #00aaff;
-  text-shadow: 0 0 10px rgba(0, 170, 255, 0.7);
+  color: #333;
   animation: glow 1.5s ease-in-out infinite alternate;
 
   @keyframes glow {
@@ -49,10 +48,11 @@ const CountdownTimer = styled.div`
   display: flex;
   gap: 2rem;
   margin-bottom: 3rem;
-  background: rgba(0, 0, 0, 0.5);
+  background: rgba(255, 255, 255, 0.98);
   padding: 2rem;
   border-radius: 1rem;
-  box-shadow: 0 0 20px rgba(0, 170, 255, 0.3);
+  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+  border: 1px solid rgba(0, 0, 0, 0.1);
 `;
 
 const CountdownUnit = styled.div`
@@ -64,9 +64,7 @@ const CountdownUnit = styled.div`
 const CountdownValue = styled.div`
   font-size: 5rem;
   font-weight: bold;
-  background: linear-gradient(45deg, #00aaff, #00ff6c);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
+  color: #333;
   min-width: 120px;
   text-align: center;
 `;
@@ -74,7 +72,7 @@ const CountdownValue = styled.div`
 const CountdownLabel = styled.div`
   font-size: 1.2rem;
   text-transform: uppercase;
-  color: #aaa;
+  color: #666;
   letter-spacing: 2px;
 `;
 
@@ -83,11 +81,13 @@ const CountdownMessage = styled.p`
   max-width: 800px;
   text-align: center;
   line-height: 1.6;
-  color: #ddd;
+  color: #666;
   margin: 0 2rem;
-  background: rgba(0, 0, 0, 0.5);
+  background: rgba(255, 255, 255, 0.98);
   padding: 1.5rem;
   border-radius: 1rem;
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
 `;
 
 interface TimeLeft {
@@ -147,7 +147,7 @@ const CountdownComponent: React.FC = () => {
       </CountdownTimer>
       <CountdownMessage>
         ARCAO Delegation will be available on Friday, May 23rd at 8:00 AM Eastern Time. 
-        Please check back then to participate. You can see a preview of the delegation interface behind this overlay.
+        Please check back then to participate.
       </CountdownMessage>
     </CountdownContainer>
   );
