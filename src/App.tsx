@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Header from './components/Header';
 import Sidebar from './components/Sidebar';
 import Footer from './components/Footer';
@@ -9,6 +9,7 @@ import ProductCard from './components/ProductCard';
 import Delegate from './sections/Delegate';
 import Mint from './components/Mint';
 import { WalletProvider, useWallet } from './shared-components/Wallet/WalletContext';
+import { handleHashChange } from './utils/scrollUtils';
 import { ScoreProvider } from './shared-components/Score/ScoreContext';
 import { games } from './games/games';
 import styled, { createGlobalStyle } from 'styled-components';
@@ -149,6 +150,19 @@ interface GameComponentProps {
 }
 
 const AppContent: React.FC = () => {
+  // Handle hash routing
+  useEffect(() => {
+    // Handle initial hash if present
+    handleHashChange();
+
+    // Listen for hash changes
+    window.addEventListener('hashchange', handleHashChange);
+
+    return () => {
+      window.removeEventListener('hashchange', handleHashChange);
+    };
+  }, []);
+
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [selectedGame, setSelectedGame] = useState<string | null>(null);
   const { isConnected, connect } = useWallet();

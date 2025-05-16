@@ -3,6 +3,7 @@ import './Header.css';
 import styled from 'styled-components';
 import WalletConnection from '../shared-components/Wallet/WalletConnection';
 import { ARCAO_LINKS } from '../links';
+import { scrollToSection, VALID_SECTIONS, SectionId } from '../utils/scrollUtils';
 
 interface HeaderProps {
   toggleSidebar: () => void;
@@ -16,12 +17,16 @@ const WalletWrapper = styled.div`
 `;
 
 const Header: React.FC<HeaderProps> = ({ toggleSidebar }) => {
-  const [activeSection, setActiveSection] = useState('start');
+  const [activeSection, setActiveSection] = useState<SectionId>(() => {
+    // Initialize active section from URL hash if present
+    const hash = window.location.hash.slice(1);
+    return (VALID_SECTIONS.includes(hash as SectionId) ? hash : 'start') as SectionId;
+  });
 
   useEffect(() => {
     const handleScroll = () => {
       const scrollPosition = window.scrollY + window.innerHeight / 2;
-      const sections = ['start', 'games', 'about', 'join', 'delegate'].map(id => {
+      const sections = VALID_SECTIONS.map(id => {
         const element = document.getElementById(id);
         if (!element) return { id, top: 0 };
         return {
@@ -32,7 +37,12 @@ const Header: React.FC<HeaderProps> = ({ toggleSidebar }) => {
 
       for (let i = sections.length - 1; i >= 0; i--) {
         if (scrollPosition >= sections[i].top) {
-          setActiveSection(sections[i].id);
+          const newSection = sections[i].id;
+          if (activeSection !== newSection) {
+            setActiveSection(newSection);
+            // Update URL hash without triggering scroll
+            window.history.replaceState(null, '', `#${newSection}`);
+          }
           break;
         }
       }
@@ -42,21 +52,13 @@ const Header: React.FC<HeaderProps> = ({ toggleSidebar }) => {
     handleScroll(); // Initial check
 
     return () => window.removeEventListener('scroll', handleScroll);
-  }, []);
+  }, [activeSection]);
 
-  const scrollToSection = (sectionId: string) => {
-    const element = document.getElementById(sectionId);
-    if (element) {
-      const headerOffset = 80; // Height of the fixed header
-      const elementPosition = element.getBoundingClientRect().top;
-      const offsetPosition = elementPosition + window.pageYOffset - headerOffset;
-
-      window.scrollTo({
-        top: offsetPosition,
-        behavior: 'smooth'
-      });
-    }
+  const handleSectionChange = (sectionId: SectionId) => {
     setActiveSection(sectionId);
+    scrollToSection(sectionId);
+    // Update URL hash without triggering scroll
+    window.history.pushState(null, '', `#${sectionId}`);
   };
 
   return (
@@ -76,7 +78,7 @@ const Header: React.FC<HeaderProps> = ({ toggleSidebar }) => {
               type="radio"
               name="section"
               checked={activeSection === 'start'}
-              onChange={() => scrollToSection('start')}
+              onChange={() => handleSectionChange('start')}
             />
             <span className="name">Start</span>
           </label>
@@ -85,25 +87,25 @@ const Header: React.FC<HeaderProps> = ({ toggleSidebar }) => {
               type="radio"
               name="section"
               checked={activeSection === 'games'}
-              onChange={() => scrollToSection('games')}
+              onChange={() => handleSectionChange('games')}
             />
-            <span className="name">Games</span>
+            <span className="name">Play</span>
           </label>
           <label className="radio">
             <input
               type="radio"
               name="section"
               checked={activeSection === 'about'}
-              onChange={() => scrollToSection('about')}
+              onChange={() => handleSectionChange('about')}
             />
-            <span className="name">About Us</span>
+            <span className="name">Learn</span>
           </label>
           <label className="radio">
             <input
               type="radio"
               name="section"
               checked={activeSection === 'join'}
-              onChange={() => scrollToSection('join')}
+              onChange={() => handleSectionChange('join')}
             />
             <span className="name">Join</span>
           </label>
@@ -121,7 +123,7 @@ const Header: React.FC<HeaderProps> = ({ toggleSidebar }) => {
               type="radio"
               name="section"
               checked={activeSection === 'delegate'}
-              onChange={() => scrollToSection('delegate')}
+              onChange={() => handleSectionChange('delegate')}
             />
             <span className="name">Delegate</span>
           </label>
