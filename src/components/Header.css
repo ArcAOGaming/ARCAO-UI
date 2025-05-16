@@ -29,8 +29,30 @@
   position: absolute;
   left: 50%;
   transform: translateX(-50%);
+  z-index: 1;
 }
 
+/* Tablet breakpoint */
+@media (min-width: 769px) and (max-width: 1024px) {
+  .nav-container {
+    position: relative;
+    left: auto;
+    transform: none;
+    margin: 0 auto;
+  }
+  
+  .header {
+    padding: 1rem 1.5rem;
+    gap: 1rem;
+  }
+  
+  .radio-inputs {
+    width: 280px;
+    font-size: 13px;
+  }
+}
+
+/* Mobile breakpoint */
 @media (max-width: 768px) {
   .nav-container {
     display: none;

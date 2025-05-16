@@ -13,7 +13,20 @@ const WalletWrapper = styled.div`
   position: fixed;
   right: 40px;
   top: 16px;
-  z-index: 101;
+  z-index: 102;
+
+  @media (min-width: 769px) and (max-width: 1024px) {
+    position: relative;
+    right: 0;
+    top: 0;
+    margin-left: auto;
+  }
+
+  @media (max-width: 768px) {
+    position: relative;
+    right: 0;
+    top: 0;
+  }
 `;
 
 const Header: React.FC<HeaderProps> = ({ toggleSidebar }) => {

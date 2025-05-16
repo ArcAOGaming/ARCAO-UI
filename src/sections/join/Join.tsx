@@ -14,8 +14,23 @@ const Join: React.FC = () => {
           with our comprehensive guides and documentation.
         </p>
         <div className="join-section__form">
-          <p>ee</p>
-
+          <iframe
+            src="https://link.we-grow.agency/widget/form/j00fw9ps7kLBCR47Mjas"
+            style={{width:'100%', height:'100%', border:'none', borderRadius:'3px'}}
+            id="inline-j00fw9ps7kLBCR47Mjas" 
+            data-layout={`{'id':'INLINE'}`}
+            data-trigger-type="alwaysShow"
+            data-trigger-value=""
+            data-activation-type="alwaysActivated"
+            data-activation-value=""
+            data-deactivation-type="neverDeactivate"
+            data-deactivation-value=""
+            data-form-name="ArcAO Email Signup"
+            data-height="402"
+            data-layout-iframe-id="inline-j00fw9ps7kLBCR47Mjas"
+            data-form-id="j00fw9ps7kLBCR47Mjas"
+            title="ArcAO Email Signup"
+          />
         </div>
       <div className="join-section__grid">
         <DocCard
