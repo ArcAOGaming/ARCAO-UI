@@ -3,7 +3,7 @@ import styled from 'styled-components';
 import Delegate2ArcAO from '../components/Delegate2ArcAO';
 
 // Target date: Friday, May 23rd 2025, 8AM Eastern Time
-const TARGET_DATE = new Date('2025-05-14T08:00:00-04:00').getTime();
+const TARGET_DATE = new Date('2025-05-23T08:00:00-04:00').getTime();
 
 // Show countdown only if target date hasn't passed
 const SHOW_COUNTDOWN = Date.now() < TARGET_DATE;
