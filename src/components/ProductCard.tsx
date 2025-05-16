@@ -10,10 +10,15 @@ const Card = styled.div`
   cursor: pointer;
   text-align: left;
   border: 2px solid black;
+  width: 100%;
 
   &:hover {
     transform: translateY(-5px);
     box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+  }
+
+  @media (max-width: 768px) {
+    padding: 1.5rem;
   }
 `;
 
@@ -21,12 +26,22 @@ const Title = styled.h3`
   margin: 0 0 1rem 0;
   font-size: 1.5rem;
   color: #333;
+
+  @media (max-width: 768px) {
+    font-size: 1.25rem;
+    margin: 0 0 0.75rem 0;
+  }
 `;
 
 const Description = styled.p`
   margin: 0;
   color: #666;
   line-height: 1.5;
+
+  @media (max-width: 768px) {
+    font-size: 0.95rem;
+    line-height: 1.4;
+  }
 `;
 
 const SocialLinks = styled.div`
@@ -35,6 +50,13 @@ const SocialLinks = styled.div`
   margin-top: 1.5rem;
   padding-top: 1.5rem;
   border-top: 1px solid rgba(0, 0, 0, 0.1);
+  flex-wrap: wrap;
+
+  @media (max-width: 768px) {
+    margin-top: 1.25rem;
+    padding-top: 1.25rem;
+    gap: 0.75rem;
+  }
 `;
 
 const SocialLink = styled.a`

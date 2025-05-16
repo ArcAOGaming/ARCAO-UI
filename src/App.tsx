@@ -49,16 +49,43 @@ const FeaturedSection = styled.section`
   }
 `;
 
+const ProductGrid = styled.div`
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 2rem;
+  max-width: 900px;
+  margin: 3rem auto 0;
+  padding: 0 1rem;
+  width: 100%;
+  
+  @media (max-width: 768px) {
+    grid-template-columns: 1fr;
+    gap: 1.5rem;
+    margin: 2rem auto 0;
+    padding: 0 1rem;
+  }
+`;
+
 const AboutSection = styled.section`
   padding: 4rem 2rem;
   background: rgba(255, 255, 255, 0.95);
   margin-top: 8rem;
   text-align: center;
   
+  @media (max-width: 768px) {
+    padding: 3rem 1rem;
+    margin-top: 4rem;
+  }
+  
   h2 {
     margin-bottom: 2rem;
     font-size: 2.5rem;
     color: #333;
+    
+    @media (max-width: 768px) {
+      font-size: 2rem;
+      margin-bottom: 1.5rem;
+    }
   }
 
   p {
@@ -67,22 +94,24 @@ const AboutSection = styled.section`
     font-size: 1.1rem;
     line-height: 1.6;
     color: #666;
+    padding: 0 1rem;
+    
+    @media (max-width: 768px) {
+      font-size: 1rem;
+      margin-bottom: 2rem;
+    }
   }
 
   h3 {
     margin: 2rem 0 1rem;
     font-size: 2rem;
     color: #333;
+    
+    @media (max-width: 768px) {
+      font-size: 1.75rem;
+      margin: 1.5rem 0 1rem;
+    }
   }
-`;
-
-const ProductGrid = styled.div`
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-  gap: 2rem;
-  max-width: 900px;
-  margin: 3rem auto 0;
-  padding: 0 1rem;
 `;
 
 const GlobalStyle = createGlobalStyle`

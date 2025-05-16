@@ -31,6 +31,21 @@
   transform: translateX(-50%);
 }
 
+@media (max-width: 768px) {
+  .nav-container {
+    display: none;
+  }
+  
+  .header {
+    padding: 1rem;
+    justify-content: space-between;
+  }
+  
+  .header-logo {
+    height: 60px;
+  }
+}
+
 .radio-inputs {
   position: relative;
   display: flex;

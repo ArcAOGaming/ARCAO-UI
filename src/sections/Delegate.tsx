@@ -33,6 +33,13 @@ const CountdownTitle = styled.h1`
   letter-spacing: 2px;
   color: #333;
   animation: glow 1.5s ease-in-out infinite alternate;
+  padding: 0 1rem;
+
+  @media (max-width: 768px) {
+    font-size: 2rem;
+    margin-bottom: 1.5rem;
+    letter-spacing: 1px;
+  }
 
   @keyframes glow {
     from {
@@ -53,12 +60,25 @@ const CountdownTimer = styled.div`
   border-radius: 1rem;
   box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
   border: 1px solid rgba(0, 0, 0, 0.1);
+
+  @media (max-width: 768px) {
+    gap: 1rem;
+    padding: 1.5rem;
+    margin-bottom: 2rem;
+    flex-wrap: wrap;
+    justify-content: center;
+  }
 `;
 
 const CountdownUnit = styled.div`
   display: flex;
   flex-direction: column;
   align-items: center;
+
+  @media (max-width: 768px) {
+    min-width: calc(50% - 1rem);
+    margin-bottom: 1rem;
+  }
 `;
 
 const CountdownValue = styled.div`
@@ -67,6 +87,11 @@ const CountdownValue = styled.div`
   color: #333;
   min-width: 120px;
   text-align: center;
+
+  @media (max-width: 768px) {
+    font-size: 3rem;
+    min-width: 80px;
+  }
 `;
 
 const CountdownLabel = styled.div`
@@ -74,6 +99,11 @@ const CountdownLabel = styled.div`
   text-transform: uppercase;
   color: #666;
   letter-spacing: 2px;
+
+  @media (max-width: 768px) {
+    font-size: 1rem;
+    letter-spacing: 1px;
+  }
 `;
 
 const CountdownMessage = styled.p`
@@ -82,12 +112,18 @@ const CountdownMessage = styled.p`
   text-align: center;
   line-height: 1.6;
   color: #666;
-  margin: 0 2rem;
+  margin: 0 1rem;
   background: rgba(255, 255, 255, 0.98);
   padding: 1.5rem;
   border-radius: 1rem;
   border: 1px solid rgba(0, 0, 0, 0.1);
   box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+
+  @media (max-width: 768px) {
+    font-size: 1.1rem;
+    padding: 1.25rem;
+    line-height: 1.5;
+  }
 `;
 
 interface TimeLeft {
