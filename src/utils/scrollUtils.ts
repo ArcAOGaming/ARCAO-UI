@@ -30,12 +30,9 @@ export const handleHashChange = () => {
     // Small delay to ensure DOM is ready
     setTimeout(() => {
       scrollToSection(hash as SectionId);
-    }, 0);
+    }, 1000);
   } else if (hash) {
     // If hash is invalid, default to start
-    window.history.replaceState(null, '', '#start');
-    setTimeout(() => {
-      scrollToSection('start');
-    }, 0);
+
   }
 };

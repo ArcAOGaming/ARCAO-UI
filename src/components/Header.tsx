@@ -54,7 +54,7 @@ const Header: React.FC<HeaderProps> = ({ toggleSidebar }) => {
           if (activeSection !== newSection) {
             setActiveSection(newSection);
             // Update URL hash without triggering scroll
-            window.history.replaceState(null, '', `#${newSection}`);
+            // window.history.replaceState(null, '', `#${newSection}`);
           }
           break;
         }
@@ -71,7 +71,8 @@ const Header: React.FC<HeaderProps> = ({ toggleSidebar }) => {
     setActiveSection(sectionId);
     scrollToSection(sectionId);
     // Update URL hash without triggering scroll
-    window.history.pushState(null, '', `#${sectionId}`);
+
+    // window.history.pushState(null, '', `#${sectionId}`);
   };
 
   return (

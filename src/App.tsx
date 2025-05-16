@@ -159,10 +159,10 @@ const AppContent: React.FC = () => {
     handleHashChange();
 
     // Listen for hash changes
-    window.addEventListener('hashchange', handleHashChange);
+    // window.addEventListener('hashchange', handleHashChange);
 
     return () => {
-      window.removeEventListener('hashchange', handleHashChange);
+      // window.removeEventListener('hashchange', handleHashChange);
     };
   }, []);
 
