@@ -6,6 +6,7 @@ import GameCard from './components/GameCard';
 import BackgroundAnimation from './components/BackgroundAnimation';
 import TextScramble from './components/TextScramble';
 import ProductCard from './components/ProductCard';
+import Join from './sections/join/Join';
 import Delegate from './sections/Delegate';
 import Mint from './components/Mint';
 import { WalletProvider, useWallet } from './shared-components/Wallet/WalletContext';
@@ -73,33 +74,6 @@ const AboutSection = styled.section`
     font-size: 2rem;
     color: #333;
   }
-`;
-
-const JoinSection = styled.section`
-padding: 4rem 2rem;
-background: rgba(255, 255, 255, 0.95);
-margin-top: 8rem;
-text-align: center;
-
-h2 {
-  margin-bottom: 2rem;
-  font-size: 2.5rem;
-  color: #333;
-}
-
-p {
-  max-width: 800px;
-  margin: 0 auto 3rem;
-  font-size: 1.1rem;
-  line-height: 1.6;
-  color: #666;
-}
-
-h3 {
-  margin: 2rem 0 1rem;
-  font-size: 2rem;
-  color: #333;
-}
 `;
 
 const ProductGrid = styled.div`
@@ -265,73 +239,7 @@ const AppContent: React.FC = () => {
                 </ProductGrid>
               </AboutSection>
 
-              <JoinSection id="join">
-                <h2>Join ArcAO</h2>
-                <p>
-                  Explore our comprehensive documentation tailored for every member of the ArcAO ecosystem.
-                  Whether you're a developer building the next hit game, a content creator looking to engage with our community,
-                  a gamer ready to dive into provably fair gaming, or an investor interested in the future of blockchain gaming,
-                  we have resources designed specifically for you.
-                </p>
-                <ProductGrid>
-                  <div className="doc-card">
-                    <h3>🎮 Game Developers</h3>
-                    <p>Resources, guides, and technical documentation for developers building games on the ArcAO platform.</p>
-                    <a
-                      href="https://docs-arcao_game.ar.ionode.online/docs/game-developers/overview"
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="hero-button"
-                    >
-                      <span className="star-top">★</span>
-                      Developer Docs
-                      <span className="star-bottom">★</span>
-                    </a>
-                  </div>
-                  <div className="doc-card">
-                    <h3>🎨 Content Creators</h3>
-                    <p>Tools, resources, and guides for content creators looking to engage with the ArcAO ecosystem.</p>
-                    <a
-                      href="https://docs-arcao_game.ar.ionode.online/docs/content-creators/overview"
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="hero-button"
-                    >
-                      <span className="star-top">★</span>
-                      Creator Guides
-                      <span className="star-bottom">★</span>
-                    </a>
-                  </div>
-                  <div className="doc-card">
-                    <h3>🏆 Gamers</h3>
-                    <p>Resources and guides for gamers looking to play and engage with games in the ArcAO ecosystem.</p>
-                    <a
-                      href="https://docs-arcao_game.ar.ionode.online/docs/gamers/overview"
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="hero-button"
-                    >
-                      <span className="star-top">★</span>
-                      Player Guides
-                      <span className="star-bottom">★</span>
-                    </a>
-                  </div>
-                  <div className="doc-card">
-                    <h3>💰 Investors</h3>
-                    <p>Investment opportunities, tokenomics information, and governance participation in the ArcAO ecosystem.</p>
-                    <a
-                      href="https://docs-arcao_game.ar.ionode.online/docs/investors/overview"
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="hero-button"
-                    >
-                      <span className="star-top">★</span>
-                      Investor Info
-                      <span className="star-bottom">★</span>
-                    </a>
-                  </div>
-                </ProductGrid>
-              </JoinSection>
+              <Join />
 
               {/* Delegate Section */}
               <section id="delegate" className="delegate-section" style={{ marginTop: '8rem' }}>
