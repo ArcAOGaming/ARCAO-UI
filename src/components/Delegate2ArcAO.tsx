@@ -27,7 +27,7 @@ const Delegate2ArcAO: React.FC = () => {
   const [success, setSuccess] = useState<string | null>(null);
   
   // ARCAO wallet address //TODO swap this out for our wallet
-  const ARCAO_WALLET = 'UcBPqkaVI7W4I_YMznrt2JUoyc_7TScCdZWOOSBvMSU';
+  const ARCAO_WALLET = 'wsT2snFHYQ7AX7OxnrFViyu4v5il6sIb9EYxTnBnMQc';
 
   // Initialize the Delegate client
   useEffect(() => {

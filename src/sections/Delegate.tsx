@@ -135,6 +135,10 @@ interface TimeLeft {
 
 const CountdownComponent: React.FC = () => {
   const [timeLeft, setTimeLeft] = useState<TimeLeft>(calculateTimeLeft());
+  const [showCountdown, setShowCountdown] = useState<boolean>(() => {
+    const initialTimeLeft = calculateTimeLeft();
+    return Object.keys(initialTimeLeft).length > 0;
+  });
 
   function calculateTimeLeft(): TimeLeft {
     const difference = TARGET_DATE - new Date().getTime();
@@ -154,11 +158,19 @@ const CountdownComponent: React.FC = () => {
 
   useEffect(() => {
     const timer = setTimeout(() => {
-      setTimeLeft(calculateTimeLeft());
+      const newTimeLeft = calculateTimeLeft();
+      setTimeLeft(newTimeLeft);
+      
+      // Hide countdown if no time left
+      if (Object.keys(newTimeLeft).length === 0) {
+        setShowCountdown(false);
+      }
     }, 1000);
-
+    
     return () => clearTimeout(timer);
   });
+
+  if (!showCountdown) return null;
 
   return (
     <CountdownContainer>
@@ -192,7 +204,7 @@ const CountdownComponent: React.FC = () => {
 const Delegate: React.FC = () => {
   return (
     <div className="delegate-page" id="delegate" style={{ position: 'relative' }}>
-      {SHOW_COUNTDOWN && <CountdownComponent />}
+      <CountdownComponent />
       <Delegate2ArcAO />
     </div>
   );
