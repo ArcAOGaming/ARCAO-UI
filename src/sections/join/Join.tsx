@@ -31,7 +31,7 @@ const Join: React.FC = () => {
             data-form-id="j00fw9ps7kLBCR47Mjas"
             title="ArcAO Email Signup"
           />
-        </div>
+      </div>
       <div className="join-section__grid">
         <DocCard
           title="🎮 Game Developers"
@@ -58,6 +58,17 @@ const Join: React.FC = () => {
           buttonUrl="https://docs-arcao_game.ar.ionode.online/docs/investors/overview"
         />
       </div>
+        <a 
+          href="#" 
+          onClick={(e) => {
+            e.preventDefault();
+            window.location.hash = 'ambassador';
+            window.scrollTo(0, 0);
+          }} 
+          className="join-section__ambassador-button"
+        >
+        ✨ Become an ArcAO Ambassador ✨
+      </a>
     </section>
   );
 };

@@ -9,8 +9,9 @@ import ProductCard from './components/ProductCard';
 import Join from './sections/join/Join';
 import Delegate from './sections/Delegate';
 import Mint from './components/Mint';
+import Ambassador from './pages/Ambassador/Ambassador';
 import { WalletProvider, useWallet } from './shared-components/Wallet/WalletContext';
-import { handleHashChange } from './utils/scrollUtils';
+import { handleHashChange, isValidPage } from './utils/scrollUtils';
 import { ScoreProvider } from './shared-components/Score/ScoreContext';
 import { games } from './games/games';
 import styled, { createGlobalStyle } from 'styled-components';
@@ -153,16 +154,29 @@ interface GameComponentProps {
 }
 
 const AppContent: React.FC = () => {
-  // Handle hash routing
+  const [currentPage, setCurrentPage] = useState<string | null>(null);
+
   useEffect(() => {
-    // Handle initial hash if present
-    handleHashChange();
+    const handlePageChange = () => {
+      const hash = window.location.hash.slice(1);
+      if (isValidPage(hash)) {
+        setCurrentPage(hash);
+        // Reset URL to just the hash
+        if (window.location.pathname !== '/') {
+          window.history.replaceState(null, '', `/#${hash}`);
+        }
+      } else {
+        setCurrentPage(null);
+      }
+    };
+
+    // Handle initial state
+    handlePageChange();
 
     // Listen for hash changes
-    // window.addEventListener('hashchange', handleHashChange);
-
+    window.addEventListener('hashchange', handlePageChange);
     return () => {
-      // window.removeEventListener('hashchange', handleHashChange);
+      window.removeEventListener('hashchange', handlePageChange);
     };
   }, []);
 
@@ -196,10 +210,14 @@ const AppContent: React.FC = () => {
     <AppContainer>
       <GlobalStyle />
       <div className="app">
-        <Header toggleSidebar={toggleSidebar} />
-        <Sidebar isOpen={isSidebarOpen} />
-        <BackgroundAnimation isVisible={!selectedGame} />
-        <main className="main-content">
+        {currentPage === 'ambassador' ? (
+          <Ambassador />
+        ) : (
+          <>
+            <Header toggleSidebar={toggleSidebar} />
+            <Sidebar isOpen={isSidebarOpen} />
+            <BackgroundAnimation isVisible={!selectedGame} />
+            <main className="main-content">
           {selectedGame ? (
             <React.Suspense fallback={<div>Loading game...</div>}>
               {GameComponent && (
@@ -279,8 +297,10 @@ const AppContent: React.FC = () => {
               {/* <Mint /> */}
             </>
           )}
-        </main>
-        <Footer />
+            </main>
+            <Footer />
+          </>
+        )}
       </div>
     </AppContainer>
   );

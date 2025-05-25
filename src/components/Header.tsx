@@ -7,6 +7,7 @@ import { scrollToSection, VALID_SECTIONS, SectionId } from '../utils/scrollUtils
 
 interface HeaderProps {
   toggleSidebar: () => void;
+  isPage?: boolean;
 }
 
 const WalletWrapper = styled.div`
@@ -29,7 +30,7 @@ const WalletWrapper = styled.div`
   }
 `;
 
-const Header: React.FC<HeaderProps> = ({ toggleSidebar }) => {
+const Header: React.FC<HeaderProps> = ({ toggleSidebar, isPage }) => {
   const [activeSection, setActiveSection] = useState<SectionId>(() => {
     // Initialize active section from URL hash if present
     const hash = window.location.hash.slice(1);
@@ -68,30 +69,38 @@ const Header: React.FC<HeaderProps> = ({ toggleSidebar }) => {
   }, [activeSection]);
 
   const handleSectionChange = (sectionId: SectionId) => {
-    setActiveSection(sectionId);
-    scrollToSection(sectionId);
-    // Update URL hash without triggering scroll
-
-    // window.history.pushState(null, '', `#${sectionId}`);
+    if (isPage) {
+      // If on a separate page, navigate back to main page with section hash
+      // and force a reload to ensure proper scroll
+      window.location.href = `/#${sectionId}`;
+      setTimeout(() => {
+        window.location.reload();
+      }, 50);
+    } else {
+      setActiveSection(sectionId);
+      scrollToSection(sectionId);
+    }
   };
 
   return (
     <header className="header">
-      <img
-        src={require('../assets/logo.png')}
-        alt="Arc Logo"
-        className="header-logo"
-        // onClick={toggleSidebar}
-        style={{ cursor: 'pointer' }}
-      />
+      <a href="/" style={{ textDecoration: 'none' }}>
+        <img
+          src={require('../assets/logo.png')}
+          alt="Arc Logo"
+          className="header-logo"
+          style={{ cursor: 'pointer' }}
+        />
+      </a>
 
-      <div className="nav-container">
-        <div className="radio-inputs">
+      {!isPage && (
+        <div className="nav-container">
+          <div className="radio-inputs">
           <label className="radio">
             <input
               type="radio"
               name="section"
-              checked={activeSection === 'start'}
+              checked={!isPage && activeSection === 'start'}
               onChange={() => handleSectionChange('start')}
             />
             <span className="name">Start</span>
@@ -100,7 +109,7 @@ const Header: React.FC<HeaderProps> = ({ toggleSidebar }) => {
             <input
               type="radio"
               name="section"
-              checked={activeSection === 'games'}
+              checked={!isPage && activeSection === 'games'}
               onChange={() => handleSectionChange('games')}
             />
             <span className="name">Play</span>
@@ -109,7 +118,7 @@ const Header: React.FC<HeaderProps> = ({ toggleSidebar }) => {
             <input
               type="radio"
               name="section"
-              checked={activeSection === 'about'}
+              checked={!isPage && activeSection === 'about'}
               onChange={() => handleSectionChange('about')}
             />
             <span className="name">Learn</span>
@@ -118,7 +127,7 @@ const Header: React.FC<HeaderProps> = ({ toggleSidebar }) => {
             <input
               type="radio"
               name="section"
-              checked={activeSection === 'join'}
+              checked={!isPage && activeSection === 'join'}
               onChange={() => handleSectionChange('join')}
             />
             <span className="name">Join</span>
@@ -136,13 +145,14 @@ const Header: React.FC<HeaderProps> = ({ toggleSidebar }) => {
             <input
               type="radio"
               name="section"
-              checked={activeSection === 'delegate'}
+              checked={!isPage && activeSection === 'delegate'}
               onChange={() => handleSectionChange('delegate')}
             />
             <span className="name">Delegate</span>
           </label>
+          </div>
         </div>
-      </div>
+      )}
 
       <WalletWrapper>
         <WalletConnection />
