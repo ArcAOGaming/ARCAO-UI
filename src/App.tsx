@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import ReactGA from 'react-ga4';
 import Header from './components/Header';
 import Sidebar from './components/Sidebar';
 import Footer from './components/Footer';
@@ -153,6 +154,9 @@ interface GameComponentProps {
   gameId: string;
 }
 
+// Initialize Google Analytics
+ReactGA.initialize('G-FVDP2VMRWM');
+
 const AppContent: React.FC = () => {
   const [currentPage, setCurrentPage] = useState<string | null>(null);
 
@@ -161,12 +165,16 @@ const AppContent: React.FC = () => {
       const hash = window.location.hash.slice(1);
       if (isValidPage(hash)) {
         setCurrentPage(hash);
+        // Track page view
+        ReactGA.send({ hitType: "pageview", page: `/#${hash}` });
         // Reset URL to just the hash
         if (window.location.pathname !== '/') {
           window.history.replaceState(null, '', `/#${hash}`);
         }
       } else {
         setCurrentPage(null);
+        // Track home page view
+        ReactGA.send({ hitType: "pageview", page: "/" });
       }
     };
 
@@ -186,6 +194,12 @@ const AppContent: React.FC = () => {
 
   const toggleSidebar = () => {
     setIsSidebarOpen(!isSidebarOpen);
+    // Track sidebar toggle
+    ReactGA.event({
+      category: "Navigation",
+      action: "Toggle Sidebar",
+      label: !isSidebarOpen ? "Open" : "Close"
+    });
   };
 
   const handleGameClick = async (gameId: string) => {
@@ -193,6 +207,12 @@ const AppContent: React.FC = () => {
       try {
         await connect();
         setSelectedGame(gameId);
+        // Track game start event
+        ReactGA.event({
+          category: "Game",
+          action: "Start",
+          label: gameId
+        });
       } catch (error) {
         console.error('Failed to connect wallet:', error);
         return;
@@ -272,14 +292,28 @@ const AppContent: React.FC = () => {
                   <ProductCard
                     title="Satoshi's Palace"
                     description="Experience the future of gaming with Satoshi's Palace, where blockchain meets entertainment. Dive into a world of provably fair gaming and exclusive rewards."
-                    onClick={() => window.open(SATOSHIS_PALACE_LINKS.WEBSITE, '_blank')}
+                    onClick={() => {
+                      ReactGA.event({
+                        category: "Product",
+                        action: "Click",
+                        label: "Satoshi's Palace"
+                      });
+                      window.open(SATOSHIS_PALACE_LINKS.WEBSITE, '_blank');
+                    }}
                     twitterUrl={SATOSHIS_PALACE_LINKS.X}
                     websiteUrl={SATOSHIS_PALACE_LINKS.WEBSITE}
                   />
                   <ProductCard
                     title="RandAO"
                     description="Discover RandAO, our innovative random number generation protocol built on Arweave. Providing verifiable randomness for decentralized applications."
-                    onClick={() => window.open(RANDAO_LINKS.WEBSITE, '_blank')}
+                    onClick={() => {
+                      ReactGA.event({
+                        category: "Product",
+                        action: "Click",
+                        label: "RandAO"
+                      });
+                      window.open(RANDAO_LINKS.WEBSITE, '_blank');
+                    }}
                     twitterUrl={RANDAO_LINKS.X}
                     websiteUrl={RANDAO_LINKS.WEBSITE}
                   />
